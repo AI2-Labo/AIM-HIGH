@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My_Profile</title>
+    <style>
+        .profile-container {
+            max-width: 200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h1>Profile</h1>
+
+        <form method="POST" action="/">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ My_Profile_Form.name.id_for_label }}">Name:</label>
+                {{ My_Profile_Form.name }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ My_Profile_Form.age.id_for_label }}">Age:</label>
+                {{ My_Profile_Form.age }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ My_Profile_Form.learning_topic.id_for_label }}">Learning Topic:</label>
+                {{ My_Profile_Form.learning_topic }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ My_Profile_Form.education_level.id_for_label }}">Education Level:</label>
+                {{ My_Profile_Form.education_level }}
+            </div>
+
+            <button type="submit" style="font-size: 1.5em;">
+                Confirm Profile
+            </button>
+        </form>
+    </div>
+</body>
+</html>
