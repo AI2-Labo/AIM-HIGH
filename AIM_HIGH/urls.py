@@ -5,6 +5,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("", include("AIM_HIGH_APP.app_urls")),
+
 ]
 
 
