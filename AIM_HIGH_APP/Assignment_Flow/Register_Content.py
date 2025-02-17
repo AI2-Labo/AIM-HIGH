@@ -55,7 +55,7 @@ class RegisterMaterial:
 
     # Temp function that should be replaced with buttons/non text input
     def parse_hidden_instructions(self, input_string):
-        hidden_instructions = None
+        hidden_instructions = ""
         if "<<" in input_string:
             if "<<material:" in input_string:
                 start_index = input_string.find("<<material:") + len("<<material:")

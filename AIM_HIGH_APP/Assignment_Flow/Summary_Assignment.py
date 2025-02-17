@@ -1,11 +1,13 @@
 from openai import OpenAI
 from pydantic import BaseModel
 import json
+import time
 
-import Hidden_Prompt_Info, Assignment_Flow, Set_Up_Profiles, Summary_Assignment, Relational_Analysis_Assignment
+import Hidden_Prompt_Info, Assignment_Flow, Set_Up_Profiles, Summary_Assignment, Relational_Analysis_Assignment, test_summary2
 
 client = OpenAI()
 
+current_summary_assignment = test_summary2.Recieve_Input()
 
 class SummaryAssignment:
     def __init__(self, conversation_history, ai_profile_name, my_profile_name, start_feedback_loop=False, response_format=Hidden_Prompt_Info.ConfirmationJson):
@@ -19,7 +21,7 @@ class SummaryAssignment:
         while True:
             completion = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
-                messages=Assignment_Flow.conversation_history,
+                messages=self.conversation_history,
                 response_format=self.response_format
             )
 
@@ -53,29 +55,87 @@ class SummaryAssignment:
             self.conversation_history.append({"role": "user", "content": f"{user_input} {hidden_instructions}"})
 
     def hidden_instructions_func(self, response_dict):
-        hidden_instructions = None
+        hidden_instructions = ""
+
+        def wait_for_execution(operation_func):
+            # Block until operation is complete
+            operation_ready = False
+            operation_result = None
+
+            def execute_operation():
+                nonlocal operation_ready, operation_result
+                operation_result = operation_func()
+                operation_ready = True
+
+            execute_operation()
+
+            # Wait until operation is ready
+            while not operation_ready:
+                time.sleep(0.1)
+
+            return operation_result
+
         if self.start_feedback_loop:
+            def generate_summary_operation():
+                return current_summary_assignment.generate(
+                    "Uniform Circular Motion",
+                    r"C:\Users\MegaS\Downloads\6.2 Dynamics of Uniform Circular Motion.pdf"
+                )
+
+            generated_summary = wait_for_execution(generate_summary_operation)
+            self.conversation_history.append({"role": "user", "content": ""})
+            self.conversation_history.append({"role": "assistant", "content": generated_summary})
+            print("\n", generated_summary)
             return Hidden_Prompt_Info.summary_assignment_hidden_prompts[1]
+
         if self.response_format == Hidden_Prompt_Info.ReferenceSummaryFeedback:
             try:
                 if response_dict["feedback"] == "YES":
-                    print("Confirmation Response Recorded: YES")
+                    def save_operation():
+                        return current_summary_assignment.save_assignment()
+
+                    saved_assignment = wait_for_execution(save_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": saved_assignment})
                     self.start_feedback_loop = True
+                    print("\n", saved_assignment)
                     return Hidden_Prompt_Info.summary_assignment_hidden_prompts[2]
+
                 elif response_dict["feedback"] == "REGENERATE":
-                    print("Regeneration Response Recorded")
+                    def regenerate_operation():
+                        return current_summary_assignment.regenerate()
+
+                    regenerated_summary = wait_for_execution(regenerate_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": regenerated_summary})
+                    print("\n", regenerated_summary)
                     self.start_feedback_loop = True
                     return Hidden_Prompt_Info.summary_assignment_hidden_prompts[3]
+
                 elif response_dict["feedback"] == "DROP":
-                    print(f"Drop Response Recorded: {response_dict['dropped_item']}")
+                    def drop_operation():
+                        return current_summary_assignment.drop_concept(response_dict['dropped_item'])
+
+                    dropped_summary = wait_for_execution(drop_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": dropped_summary})
+                    print("\n", dropped_summary)
                     self.start_feedback_loop = True
                     return Hidden_Prompt_Info.summary_assignment_hidden_prompts[4]
+
                 elif response_dict["feedback"] == "ADD":
-                    print(f"Add Response Recorded: {response_dict['added_item']}")
+                    def add_operation():
+                        return current_summary_assignment.add_concept(response_dict['added_item'])
+
+                    added_summary = wait_for_execution(add_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": added_summary})
+                    print("\n", added_summary)
                     self.start_feedback_loop = True
                     return Hidden_Prompt_Info.summary_assignment_hidden_prompts[5]
+
                 elif response_dict["feedback"] == "NO":
                     return hidden_instructions
+
             except KeyError:
                 return hidden_instructions
-

@@ -54,7 +54,7 @@ class RelationalAssignment:
             self.conversation_history.append({"role": "user", "content": f"{user_input} {hidden_instructions}"})
 
     def hidden_instructions_func(self, response_dict):
-        hidden_instructions = None
+        hidden_instructions = ""
         if self.start_feedback_loop:
             return Hidden_Prompt_Info.relational_analysis_hidden_prompts[1]
         if self.response_format == Hidden_Prompt_Info.ReferenceSummaryFeedback:

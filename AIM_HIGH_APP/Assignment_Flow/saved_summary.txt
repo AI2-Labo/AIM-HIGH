@@ -1,0 +1,10 @@
+Topic: Uniform Circular Motion
+Key Concepts:  Mathematics
+Summary: **Key Concept Relations:**
+- Uniform Circular Motion - Centripetal Acceleration: Objects moving in a circle experience centripetal acceleration towards the center.
+- Centripetal Acceleration - Net Force: The centripetal acceleration requires a net force towards the center, as per Newton's Second Law.
+- Friction - Turning Vehicles: Friction provides the necessary centripetal force for vehicles to turn.
+- Normal Force - Banked Turns: In banked turns, the normal force supplies the centripetal force.
+- Maximum Walking Speed - Circular Motion: The maximum walking speed is limited by factors like leg length and gravity, related to circular motion.
+- Road Design - Circular Dynamics: Engineers design roads with curves and banking angles based on circular dynamics principles for safety and efficiency.
+- Race Car Modifications - Circular Dynamics: Race cars use modifications like wings to increase downforce, enhancing the normal force for faster turns.
