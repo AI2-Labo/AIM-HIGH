@@ -53,6 +53,7 @@ class FeedbackEnum(str, Enum):
     DROP = "DROP"
     ADD = "ADD"
     NO = "NO"
+
 class ReferenceSummaryFeedback(BaseModel):
     message: str
     feedback: FeedbackEnum = Field(description="YES if user says they like or want to register the assignment, REGENERATE if user says they want to regenerate the assignment, DROP if the user says they want to drop an item, ADD if the user says they want to add an item, NO for any other response including negative, uncertain, or off-topic responses")

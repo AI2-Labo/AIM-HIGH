@@ -1,12 +1,14 @@
 from openai import OpenAI
 from pydantic import BaseModel
 import json
+import time
 
-import Hidden_Prompt_Info, Assignment_Flow, Set_Up_Profiles, Summary_Assignment, Relational_Analysis_Assignment
+import causal_relations_prompts, Hidden_Prompt_Info, Assignment_Flow, Set_Up_Profiles, Summary_Assignment, Relational_Analysis_Assignment
 
 client = OpenAI()
 
-response_format = Hidden_Prompt_Info.ConfirmationJson
+current_relational_assignment = causal_relations_prompts.Recieve_Input()
+
 class RelationalAssignment:
     def __init__(self, conversation_history, ai_profile_name, my_profile_name, start_feedback_loop=False, response_format=Hidden_Prompt_Info.ConfirmationJson):
         self.conversation_history = conversation_history
@@ -18,6 +20,7 @@ class RelationalAssignment:
     def start_relational_assignment(self):
         response_delay = False # For giving a 1 cycle delay
         while True:
+            print("CONTEXT: ", self.conversation_history)
             completion = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=self.conversation_history,
@@ -55,28 +58,86 @@ class RelationalAssignment:
 
     def hidden_instructions_func(self, response_dict):
         hidden_instructions = ""
+
+        def wait_for_execution(operation_func):
+            # Block until operation is complete
+            operation_ready = False
+            operation_result = None
+
+            def execute_operation():
+                nonlocal operation_ready, operation_result
+                operation_result = operation_func()
+                operation_ready = True
+
+            execute_operation()
+
+            # Wait until operation is ready
+            while not operation_ready:
+                time.sleep(0.1)
+
+            return operation_result
+
         if self.start_feedback_loop:
+            def generate_summary_operation():
+                return current_relational_assignment.generate(
+                    "Uniform Circular Motion",
+                    r"C:\Users\MegaS\Downloads\6.2 Dynamics of Uniform Circular Motion.pdf"
+                )
+
+            generated_analysis = wait_for_execution(generate_summary_operation)
+            self.conversation_history.append({"role": "user", "content": ""})
+            self.conversation_history.append({"role": "assistant", "content": generated_analysis})
+            print("\n", generated_analysis)
             return Hidden_Prompt_Info.relational_analysis_hidden_prompts[1]
+
         if self.response_format == Hidden_Prompt_Info.ReferenceSummaryFeedback:
             try:
                 if response_dict["feedback"] == "YES":
-                    print("Confirmation Response Recorded: YES")
+                    def save_operation():
+                        return current_relational_assignment.save_assignment()
+
+                    saved_assignment = wait_for_execution(save_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": saved_assignment})
                     self.start_feedback_loop = True
+                    print("\n", saved_assignment)
                     return Hidden_Prompt_Info.relational_analysis_hidden_prompts[2]
+
                 elif response_dict["feedback"] == "REGENERATE":
-                    print("Regeneration Response Recorded")
+                    def regenerate_operation():
+                        return current_relational_assignment.regenerate()
+
+                    regenerated_summary = wait_for_execution(regenerate_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": regenerated_summary})
+                    print("\n", regenerated_summary)
                     self.start_feedback_loop = True
                     return Hidden_Prompt_Info.relational_analysis_hidden_prompts[3]
+
                 elif response_dict["feedback"] == "DROP":
-                    print(f"Drop Response Recorded: {response_dict['dropped_item']}")
+                    def drop_operation():
+                        return current_relational_assignment.drop_concept(response_dict['dropped_item'])
+
+                    dropped_summary = wait_for_execution(drop_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": dropped_summary})
+                    print("\n", dropped_summary)
                     self.start_feedback_loop = True
                     return Hidden_Prompt_Info.relational_analysis_hidden_prompts[4]
+
                 elif response_dict["feedback"] == "ADD":
-                    print(f"Add Response Recorded: {response_dict['added_item']}")
+                    def add_operation():
+                        return current_relational_assignment.add_concept(response_dict['added_item'])
+
+                    added_summary = wait_for_execution(add_operation)
+                    self.conversation_history.append({"role": "user", "content": ""})
+                    self.conversation_history.append({"role": "assistant", "content": added_summary})
+                    print("\n", added_summary)
                     self.start_feedback_loop = True
                     return Hidden_Prompt_Info.relational_analysis_hidden_prompts[5]
+
                 elif response_dict["feedback"] == "NO":
                     return hidden_instructions
+
             except KeyError:
                 return hidden_instructions
-

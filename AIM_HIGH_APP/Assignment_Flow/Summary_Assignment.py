@@ -19,6 +19,7 @@ class SummaryAssignment:
     def start_summary_assignment(self):
         response_delay = False # For giving a 1 cycle delay
         while True:
+            print("CONTEXT: ", self.conversation_history)
             completion = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=self.conversation_history,

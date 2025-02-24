@@ -73,6 +73,6 @@ def run_flow(): # Edit this function for stuff to happen
     # uvicorn Assignment_Flow:app --reload     <-- Run in terminal once in the Assignment_Flow directory
     global conversation_history
     # Replace "Register_Content" with your desired assignment
-    generator = start_flow("Summary_Assignment")
+    generator = start_flow("Relational_Analysis")
     for context in generator:
         conversation_history = context  # Update the global variable
