@@ -1,11 +1,13 @@
-from openai import OpenAI
+from ollama import Client
 from pydantic import BaseModel
 import json
 import time
-
 import Hidden_Prompt_Info, Assignment_Flow, Set_Up_Profiles, Summary_Assignment, Relational_Analysis_Assignment, test_summary2
+import os
+from dotenv import load_dotenv
 
-client = OpenAI()
+load_dotenv()
+client = Client(host=os.getenv("OLLAMA_HOST_URL"))
 
 current_summary_assignment = test_summary2.Recieve_Input()
 
@@ -19,15 +21,15 @@ class SummaryAssignment:
     def start_summary_assignment(self):
         response_delay = False # For giving a 1 cycle delay
         while True:
-            print("CONTEXT: ", self.conversation_history)
-            completion = client.beta.chat.completions.parse(
-                model="gpt-4o-mini",
+            #print("CONTEXT: ", self.conversation_history)
+            completion = client.chat(
+                model="llama3.3:latest",
                 messages=self.conversation_history,
-                response_format=self.response_format
+                format=self.response_format.model_json_schema()
             )
 
-            assistant_response = completion.choices[0].message
-            response_dict = json.loads(assistant_response.content)
+            assistant_response = completion['message']['content']
+            response_dict = json.loads(assistant_response)
             parsed_response = response_dict["message"]
 
             if self.response_format == Hidden_Prompt_Info.ConfirmationJson:
@@ -43,7 +45,7 @@ class SummaryAssignment:
 
             print(f"\n{self.ai_profile_name}:", parsed_response)
 
-            self.conversation_history.append({"role": "assistant", "content": assistant_response.content})
+            self.conversation_history.append({"role": "assistant", "content": assistant_response})
             #print(f"    self.conversation history: {self.conversation_history}")
 
             hidden_instructions = self.hidden_instructions_func(response_dict)
@@ -87,6 +89,7 @@ class SummaryAssignment:
             self.conversation_history.append({"role": "user", "content": ""})
             self.conversation_history.append({"role": "assistant", "content": generated_summary})
             print("\n", generated_summary)
+            self.response_format = Hidden_Prompt_Info.ReferenceSummaryFeedback
             return Hidden_Prompt_Info.summary_assignment_hidden_prompts[1]
 
         if self.response_format == Hidden_Prompt_Info.ReferenceSummaryFeedback:

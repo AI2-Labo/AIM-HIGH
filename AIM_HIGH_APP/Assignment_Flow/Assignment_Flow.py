@@ -1,5 +1,4 @@
 # Main script that references all the others
-from openai import OpenAI
 import Hidden_Prompt_Info, Set_Up_Profiles, Register_Content, Summary_Assignment, Relational_Analysis_Assignment
 
 from fastapi import FastAPI
@@ -7,8 +6,6 @@ from fastapi.responses import JSONResponse
 import threading
 
 app = FastAPI()
-
-client = OpenAI()
 
 # These should be done externally, this is temp
 AI_Profile = Set_Up_Profiles.AI_Profile("Doctor-bot", 40,

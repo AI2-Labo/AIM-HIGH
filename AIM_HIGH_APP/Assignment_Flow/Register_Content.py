@@ -1,10 +1,13 @@
-from openai import OpenAI
+from ollama import Client
 from pydantic import BaseModel
 import json
-
 import Hidden_Prompt_Info, Assignment_Flow, Set_Up_Profiles, Summary_Assignment, Relational_Analysis_Assignment
+import os
+from dotenv import load_dotenv
 
-client = OpenAI()
+load_dotenv()
+client = Client(host=os.getenv("OLLAMA_HOST_URL"))
+
 class RegisterMaterial:
     def __init__(self, conversation_history, ai_profile_name, my_profile_name, response_format=Hidden_Prompt_Info.BaseJson):
         self.conversation_history = conversation_history
@@ -15,14 +18,14 @@ class RegisterMaterial:
     def start_registration(self):
         response_delay = False # For giving a 1 cycle delay
         while True:
-            completion = client.beta.chat.completions.parse(
-                model="gpt-4o-mini",
+            completion = client.chat(
+                model="llama3.3:latest",
                 messages=self.conversation_history,
-                response_format=self.response_format
+                format=self.response_format.model_json_schema()
             )
 
-            assistant_response = completion.choices[0].message
-            response_dict = json.loads(assistant_response.content)
+            assistant_response = completion['message']['content']
+            response_dict = json.loads(assistant_response)
             parsed_response = response_dict["message"]
 
             if self.response_format == Hidden_Prompt_Info.ConfirmationJson:
@@ -37,7 +40,7 @@ class RegisterMaterial:
 
             print(f"\n{self.ai_profile_name}:", parsed_response)
 
-            self.conversation_history.append({"role": "assistant", "content": assistant_response.content})
+            self.conversation_history.append({"role": "assistant", "content": assistant_response})
 
             yield self.conversation_history # apparently returns updated context
 
