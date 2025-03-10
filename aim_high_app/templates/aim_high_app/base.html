@@ -1,0 +1,39 @@
+<!-- aim_high_app/templates/aim_high_app/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIM HIGH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/">AIM HIGH</a>
+        </div>
+        <div class="header-controls">
+            <div class="dropdown">
+                <button class="menu-button">Menu</button>
+                <div class="dropdown-content">
+                    <a href="/">Home</a>
+                    <a href="#">My Summaries</a>
+                    <a href="#">Settings</a>
+                </div>
+            </div>
+            <a href="#" class="logout-button">Log out</a>
+        </div>
+    </header>
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% load static %}
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
