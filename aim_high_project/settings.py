@@ -97,3 +97,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # OpenAI API key from environment variables
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+# Ollama Host URL from environment variables
+OLLAMA_HOST_URL = os.environ.get('OLLAMA_HOST_URL', '')
