@@ -72,4 +72,4 @@ class EvaluateSummaryFeedback(BaseModel):
     message: str
     score: int = Field("An evaluation score of 1-5 based on content quality, accuracy, and completeness.")
     feedback: str = Field("Feedback on the summary")
-    missing_concepts: list = Field("A list of concept names that were missing from the summary. Only include the name of the concept for each list entry.")
+    missing_concepts: list[str] = Field("A list of concept names that were missing from the summary. Only include the name of the concept for each list entry.")
