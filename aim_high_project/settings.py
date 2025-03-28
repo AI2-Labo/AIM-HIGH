@@ -97,3 +97,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # OpenAI API key from environment variables
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
+# Authentication settings
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# In settings.py
+APPEND_SLASH = False

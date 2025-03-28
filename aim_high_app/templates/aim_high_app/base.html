@@ -1,5 +1,3 @@
-<!-- aim_high_app/templates/aim_high_app/base.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,9 +18,11 @@
             <div class="dropdown">
                 <button class="menu-button">Menu</button>
                 <div class="dropdown-content">
-                    <a href="/">Home</a>
-                    <a href="#">My Summaries</a>
-                    <a href="#">Settings</a>
+                    <a href="{% url 'index' %}">Home</a>
+                    <a href="{% url 'profile' %}">My Profile</a>
+                    <a href="{% url 'classes' %}">My Classes</a>
+                    <a href="{% url 'learning_materials' %}">Learning Materials</a>
+                    <a href="{% url 'assignments' %}">Assignments</a>
                 </div>
             </div>
             <a href="#" class="logout-button">Log out</a>
@@ -30,10 +30,61 @@
     </header>
     
     <main>
-        {% block content %}{% endblock %}
+        <div class="app-container">
+            <div class="sidebar">
+                <ul class="nav-menu">
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'profile' %}">My Profile</a></li>
+                    <li><a href="{% url 'classes' %}">My classes</a></li>
+                    <li class="has-submenu">
+                        <a href="{% url 'learning_materials' %}">Learning Materials</a>
+                        <span class="submenu-toggle">▾</span>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="{% url 'assignments' %}">Assignments</a>
+                        <span class="submenu-toggle">▾</span>
+                        <ul class="submenu">
+                            <li><a href="{% url 'assignments_by_type' 'All' %}">All</a></li>
+                            <li><a href="{% url 'assignments_by_type' 'Summarization' %}">Summarization</a></li>
+                            <li><a href="{% url 'assignments_by_type' 'Causality Analysis' %}">Causality Analysis</a></li>
+                            <li><a href="{% url 'assignments_by_type' 'Solution Explanation' %}">Solution Explanation</a></li>
+                            <li><a href="{% url 'assignments_by_type' 'Argumentation' %}">Argumentation</a></li>
+                            <li><a href="{% url 'assignments_by_type' 'Creative Writing' %}">Creative Writing</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="content-wrapper">
+                <div class="main-content">
+                    {% block content %}{% endblock %}
+                </div>
+                
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <h2>Conversation with Abby</h2>
+                    </div>
+                    
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Chat messages will be added dynamically -->
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Message ChatGPT...">
+                        <button id="send-message" class="send-button">
+                            <img src="{% static 'images/send-icon.svg' %}" alt="Send" class="send-icon">
+                        </button>
+                        <button id="voice-input" class="voice-button">
+                            <img src="{% static 'images/microphone-icon.svg' %}" alt="Voice" class="voice-icon">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     
     {% load static %}
     <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,144 +1,66 @@
-<!-- aim_high_app/templates/aim_high_app/index.html -->
-
 {% extends "aim_high_app/base.html" %}
 
 {% block content %}
-<div class="go-back">
-    <a href="#" id="back-to-class">&larr; Go back to the Class</a>
+<div class="page-header">
+    <h1>Profile Management</h1>
 </div>
 
-<div class="app-container">
-    <div class="summary-panel">
-        <h2>Summarization Assignment</h2>
+<div class="welcome-section">
+    <h2>Welcome to AIM HIGH</h2>
+    <p>Your gateway to enhanced AI-powered online education</p>
+    
+    <div class="info-cards">
+        <div class="info-card">
+            <h3>Privacy First</h3>
+            <p>All collected data is fully deidentified and securely processed</p>
+        </div>
         
-        <div class="accordion-container">
-            <!-- Learning Material Section -->
-            <div class="accordion-item active" id="learning-material-section">
-                <div class="accordion-header">
-                    <div class="accordion-icon">
-                        <span class="checkmark">✓</span>
-                    </div>
-                    <h3>Learning Material</h3>
-                    <button class="accordion-toggle">▼</button>
-                </div>
-                <div class="accordion-content" style="display: block;">
-                    <div id="material-input-form">
-                        <h4>3.4 Unique Characteristics of Eukaryotic Cells</h4>
-                        <div class="input-group">
-                            <label for="material-url">Enter URL to content:</label>
-                            <input type="url" id="material-url" placeholder="https://example.com/article">
-                        </div>
-                        <div class="input-group">
-                            <label for="material-content">Or paste content directly:</label>
-                            <textarea id="material-content" rows="6" placeholder="Paste your learning material here..."></textarea>
-                        </div>
-                        <button id="submit-material" class="primary-button">Submit Material</button>
-                    </div>
-                    
-                    <div id="material-preview" class="hidden">
-                        <h4 id="material-title">3.4 Unique Characteristics of Eukaryotic Cells</h4>
-                        <div id="material-content-preview" class="content-preview"></div>
-                        <div class="button-group">
-                            <button id="edit-material" class="secondary-button">Edit</button>
-                            <button id="confirm-material" class="primary-button">Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Write Summary Section -->
-            <div class="accordion-item" id="write-summary-section">
-                <div class="accordion-header">
-                    <div class="accordion-icon">
-                        <span class="checkmark">✓</span>
-                    </div>
-                    <h3>Write your Summary</h3>
-                    <button class="accordion-toggle">▼</button>
-                </div>
-                <div class="accordion-content">
-                    <div id="summary-form">
-                        <div class="input-group">
-                            <textarea id="summary-content" rows="8" placeholder="Write your summary here..."></textarea>
-                        </div>
-                        <div class="button-group">
-                            <button id="generate-summary" class="secondary-button">Generate Summary</button>
-                            <button id="save-summary" class="primary-button">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Feedback Section -->
-            <div class="accordion-item" id="feedback-section">
-                <div class="accordion-header">
-                    <div class="accordion-icon">
-                        <span class="checkmark">✓</span>
-                    </div>
-                    <h3>Feedback on Your Summary (Version from 02/15/2025 at 09:25:35 PM)</h3>
-                    <button class="accordion-toggle">▼</button>
-                </div>
-                <div class="accordion-content">
-                    <div class="progress-container">
-                        <div class="progress-label">Progress</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 7%;"></div>
-                        </div>
-                        <div class="progress-percentage">7%</div>
-                    </div>
-                    
-                    <div id="knowledge-map-container">
-                        <h4>Your Knowledge Map</h4>
-                        <div id="knowledge-map" class="knowledge-map" style="width: 100%; height: 300px;"></div>
-                    </div>
-                    
-                    <div id="missing-concepts-container">
-                        <h4>Missing Concepts</h4>
-                        <div class="concept-grid" id="missing-concepts-grid">
-                            <!-- Missing concepts will be added dynamically -->
-                        </div>
-                    </div>
-                    
-                    <div id="scores-feedback-container">
-                        <h4>Specific Scores and Feedback</h4>
-                        <div class="feedback-item">
-                            <div class="feedback-header">
-                                <span>Content Quality:</span>
-                                <div class="star-rating">
-                                    <span class="star filled">★</span>
-                                    <span class="star filled">★</span>
-                                    <span class="star filled">★</span>
-                                    <span class="star">★</span>
-                                    <span class="star">★</span>
-                                </div>
-                            </div>
-                            <div class="feedback-description">
-                                <p>Evaluates the accuracy, completeness, and clarity of the summary. A high quality summary captures key ideas concisely, maintains factual accuracy, and presents information logically without unnecessary details or omissions.</p>
-                                <div class="improvement-tips">
-                                    <h5>How To Improve:</h5>
-                                    <p>Your summary captures some key points but lacks completeness and clarity. Important details are missing, making it difficult to grasp the main ideas fully. To improve, ensure all key concepts are included and clearly explained.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="info-card">
+            <h3>Research-Backed</h3>
+            <p>Continuous improvement through evidence-based learning analytics</p>
+        </div>
+        
+        <div class="info-card">
+            <h3>Integrated</h3>
+            <p>Contributing to the advancement of online and hybrid education</p>
         </div>
     </div>
     
-    <div class="chat-panel">
-        <div class="chat-header">
-            <h2>Conversation with Jordan</h2>
-        </div>
-        
-        <div class="chat-messages" id="chat-messages">
-            <!-- Chat messages will be added dynamically -->
-        </div>
-        
-        <div class="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Type your message...">
-            <button id="send-message" class="send-button">Send</button>
-            <button id="voice-input" class="voice-button">Voice</button>
-        </div>
+    <div class="info-text">
+        <p>The data we gather through AIM HIGH is deidentified and studied by linking it with other information about students collected through institutional systems. We collect information regarding user interactions with AI agents and analyze data at the aggregate level only.</p>
     </div>
 </div>
+
+<div class="profile-preview">
+    <h2>My Profile</h2>
+    
+    <div class="profile-content">
+        <p>I am Dr. Min Kyu Kim, an associate professor in the Department of Learning Sciences at Georgia State University and the founding director of the AI² Research Laboratory. My research focuses on AI-driven personalized learning, technology-enhanced assessment, and learner engagement in digital environments. Over the years, I have led multiple NSF- and Spencer-funded projects, working to advance AI-supported education. I also serve in leadership roles, including as Program Chair for AERA Learning & SIG 2024 and an Executive Committee Member of the NSF AI Institute for Adult Learning and Online Education (ALOE). My work has been recognized through awards and published in leading academic journals.</p>
+        
+        <p>I was born and raised in Korea before pursuing my graduate studies in the United States, and my background has shaped both my professional and personal life. Outside of academia, I enjoy experimenting with flavors that reflect my heritage and creativity. I also have a passion for storytelling, both cinematically and through thought-provoking narratives.</p>
+        
+        <p>Faith is an important part of my life, and as a sincere Christian, I strive to live by values of integrity, kindness, and purpose. Family is central to who I am—I have been happily married for over 23 years, and my daughter will be starting at Vanderbilt University in Fall 2025, a milestone my family and I are excited about.</p>
+        
+        <p>While I dedicate much of my time to research and teaching, I believe in maintaining balance—whether that means mentoring students, leading cutting-edge projects, or preparing a home-cooked meal. I approach both my work and personal life with curiosity, dedication, and a deep appreciation for learning and connection.</p>
+    </div>
+    
+    <button class="save-button">Saved</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add initial chat message
+    const chatMessages = document.getElementById('chat-messages');
+    
+    addMessageToUI('assistant', `Hey Min, I'm Abby.
+    
+I've been in information sciences for a while—45 years old and still learning every day! My focus is on AI in education, and I spend a lot of my time helping faculty and educators integrate AI into their teaching. Right now, I'm particularly involved with AIM HIGH, where I serve as a mentor, guiding new users through the platform.
+
+If you're new to AIM HIGH, I'm here to help. Whether you need guidance on best practices, coaching on how to make the most of its features, or just quick answers to your questions, I've got you covered. AI can feel like a big shift, but I believe it's all about finding ways to make it work for you—not the other way around.
+
+I love chatting about how AI can enhance teaching, streamline tasks, and create more personalized learning experiences. If you're exploring AIM HIGH or just curious about AI in education, let's talk—I'm always happy to help!`);
+});
+</script>
 {% endblock %}

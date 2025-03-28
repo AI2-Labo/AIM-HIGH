@@ -1,0 +1,242 @@
+{% extends "aim_high_app/base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Causality Analysis Assignments</h1>
+</div>
+
+<div class="causality-container">
+    <h2>New Causality Analysis Assignment</h2>
+    
+    <div class="step-container">
+        <h3>Step 1: Choose the Related Learning Material</h3>
+        <div class="search-container">
+            <select id="learning-material-select" class="form-control">
+                <option value="" disabled {% if not assignment %}selected{% endif %}>Select a learning material</option>
+                {% for material in materials %}
+                <option value="{{ material.id }}" {% if assignment and assignment.learning_material.id == material.id %}selected{% endif %}>{{ material.title }}</option>
+                {% endfor %}
+            </select>
+            <button id="search-button" class="search-button">Search</button>
+        </div>
+        <div id="selected-material">{% if assignment %}{{ assignment.learning_material.title }}{% else %}4.1 Motion and Forces{% endif %}</div>
+    </div>
+    
+    <div class="step-container">
+        <h3>Step 2: Preview{% if assignment %} the Reference Model{% endif %}</h3>
+        
+        <div class="preview-container">
+            <div class="accordion-item active">
+                <div class="accordion-header">
+                    <span class="accordion-indicator">⚪</span>
+                    <h4>Cause-and-Effect Explanation</h4>
+                    <span class="accordion-toggle">▾</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation-text">
+                        <p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration, while increasing the mass of the object results in a smaller acceleration. Forces are interactions between two objects, with every force having an agent that causes the force. Forces can be contact forces, which act on an object by touching it, or long-range forces, which act without physical contact.</p>
+                        <p>Force is a vector quantity that has a magnitude and a direction. Multiple forces acting on an object result in a net force that determines the object's motion. The net force is the vector sum of all the individual forces acting on the object. Force vectors can be represented by arrows, with the tail positioned on the object depicted as a particle, and the arrow pointing in the direction of the force. The length of the arrow is proportional to the magnitude of the force. Newton's first law states that when an object has no net force acting on it, if it is at rest, it will remain at rest. If it is moving, it will continue in a straight line at a constant speed. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration while increasing the mass of the object results in a smaller acceleration. This leads to the basis of Newton's second law, which states that acceleration is equal to the force divided by the mass. This can also be stated as force is equal to mass times acceleration (F=ma). Newton's third law states that for every action, there is an equal and opposite reaction. This law is illustrated through experiments with spring toys, showing that forces between objects are always equal and opposite.</p>
+                        <p>Overall, the reading material provides a comprehensive overview of forces, their properties, and their role in causing motion.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item active">
+                <div class="accordion-header">
+                    <span class="accordion-indicator">⚪</span>
+                    <h4>Cause-and-Effect Model</h4>
+                    <span class="accordion-toggle">▾</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="model-graph" id="causality-graph">
+                        <!-- D3.js will render the graph here -->
+                    </div>
+                    
+                    <div class="model-variables">
+                        <div class="variables-column">
+                            <h5>Key Variables</h5>
+                            <div class="variable-item">Acceleration</div>
+                            <div class="variable-item">Motion</div>
+                            <div class="variable-item">First Law</div>
+                            <div class="variable-item">Net Force</div>
+                            <div class="variable-item">Mass</div>
+                        </div>
+                        <div class="variables-column">
+                            <h5>Cause-and-Effect Relations</h5>
+                            <div class="relation-item">Force >>>> Motion</div>
+                            <div class="relation-item">Net Force >>> Motion</div>
+                            <div class="relation-item">Contact Force >>> Motion</div>
+                            <div class="relation-item">Force >>> Second Law</div>
+                            <div class="relation-item">Second Law >>> Force</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="step-container">
+        <h3>Step 3: Log</h3>
+        <div class="log-entries">
+            <div class="log-entry">Reference Model 2 (Modified) created 02/14/2025 at 10:25:36 PM</div>
+            <div class="log-entry">Reference Model 1 (Initial Model) created 02/14/2025 at 10:20:47 PM</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the causality graph
+    createCausalityGraph();
+    
+    function createCausalityGraph() {
+        // Sample data
+        const nodes = [
+            { id: "Motion", name: "Motion" },
+            { id: "Force", name: "Force" },
+            { id: "Acceleration", name: "Acceleration" },
+            { id: "Mass", name: "Mass" },
+            { id: "Net Force", name: "Net Force" },
+            { id: "First Law", name: "First Law" },
+            { id: "Second Law", name: "Second Law" },
+            { id: "Contact Force", name: "Contact Force" }
+        ];
+        
+        const links = [
+            { source: "Force", target: "Motion", type: "causes" },
+            { source: "Force", target: "Acceleration", type: "causes" },
+            { source: "Net Force", target: "Motion", type: "determines" },
+            { source: "Mass", target: "Acceleration", type: "affects" },
+            { source: "Force", target: "Second Law", type: "relates to" },
+            { source: "Second Law", target: "Acceleration", type: "defines" },
+            { source: "First Law", target: "Motion", type: "describes" },
+            { source: "Contact Force", target: "Motion", type: "causes" }
+        ];
+        
+        // Set up the SVG container
+        const width = document.getElementById('causality-graph').clientWidth;
+        const height = 300;
+        
+        const svg = d3.select("#causality-graph")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+        
+        // Create a force simulation
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+        
+        // Add links
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("stroke", "#92c5de")
+            .attr("stroke-width", 2);
+        
+        // Add nodes
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .enter()
+            .append("circle")
+            .attr("r", 10)
+            .attr("fill", "#3498db")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+        
+        // Add node labels
+        const label = svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .enter()
+            .append("text")
+            .text(d => d.name)
+            .attr("font-size", "12px")
+            .attr("dx", 12)
+            .attr("dy", 4);
+        
+        // Update positions on tick
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+            
+            label
+                .attr("x", d => d.x)
+                .attr("y", d => d.y);
+        });
+        
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+    }
+    
+    // Add initial chat messages
+    const chatMessages = document.getElementById('chat-messages');
+    
+    addMessageToUI('assistant', `Hey Min
+How are you this afternoon? Do you want to create a causality analysis assignment?`);
+    
+    addMessageToUI('user', `Hi, Abby,
+Yes, I want to create a new assignment.`);
+    
+    addMessageToUI('assistant', `Gotcha!
+First, you need to choose a registered source material. Use the "Search" function to find one. If you haven't registered the relevant learning material yet, head to the "Learning Materials" menu and add it first.`);
+    
+addMessageToUI('assistant', `Hey Min,
+You chose the learning material, "4.1 Motion and Forces."
+I'll generate a reference causality description and share it with you shortly. Let me know if there's anything specific you'd like me to focus on. I will be back shortly.`);
+
+   addMessageToUI('assistant', `Hey Min,
+Here's Reference Model 1, along with the cause-and-effect explanation and the cause-and-effect model, which outlines key variables, their relationships, and the concept model. Take a look and let me know your thoughts:
+• If you agree with this reference model, just reply with "I like it."
+• If you'd prefer to regenerate the entire suggestion, reply with "regenerate."
+• If you want to adjust the key concepts, let me know which ones you'd like to drop or add by saying "I like to drop..." or "I want to add..." or "I like to drop... and add..."`);
+
+   addMessageToUI('user', `Abby, I am new to this system. It is a stupid question. Why do I need a reference model?`);
+
+   addMessageToUI('assistant', `Not a stupid question at all! A reference model helps structure and clarify key concepts and relationships, and it's used as the foundation for an assessment model in this assignment.`);
+
+   addMessageToUI('user', `Aha, thanks! I see that "contact force" is missing along with its causal relationships with other variables. Everything else looks good!`);
+
+   addMessageToUI('assistant', `No problem! I'll re-generate a causality description based on your input and share it with you shortly.`);
+
+   addMessageToUI('assistant', `Here's the 2nd reference model. Let me know your thoughts.`);
+
+   addMessageToUI('user', `Abby, this model looks great. I really appreciate your support.`);
+
+   addMessageToUI('assistant', `My pleasure! Model 2 will serve as the reference model for the assignment. You now have the causality analysis assignment for 4.1 Motion and Forces.
+
+Let me know if there's anything else I can help with!`);
+});
+</script>
+{% endblock %}

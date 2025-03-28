@@ -1,0 +1,88 @@
+{% extends "aim_high_app/base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Profile Management</h1>
+</div>
+
+<div class="profile-editor">
+    <form id="profile-form">
+        <div class="form-section">
+            <h2>Personal Information</h2>
+            <div class="form-group">
+                <label for="full-name">Full Name</label>
+                <input type="text" id="full-name" name="full_name" value="{{ instructor.full_name }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" value="{{ instructor.title }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="institution">Institution</label>
+                <input type="text" id="institution" name="institution" value="{{ instructor.institution }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="department">Department</label>
+                <input type="text" id="department" name="department" value="{{ instructor.department }}">
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Professional Biography</h2>
+            <div class="form-group">
+                <label for="bio">Professional Bio</label>
+                <textarea id="bio" name="bio" rows="6">{{ instructor.bio }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="research">Research Interests</label>
+                <textarea id="research" name="research_interests" rows="4">{{ instructor.research_interests }}</textarea>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Personal Background</h2>
+            <div class="form-group">
+                <label for="background">Personal Background</label>
+                <textarea id="background" name="personal_background" rows="6">{{ instructor.personal_background }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="faith">Faith Statement (Optional)</label>
+                <textarea id="faith" name="faith_statement" rows="4">{{ instructor.faith_statement }}</textarea>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="primary-button">Save Profile</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('profile-form');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Simulated success message
+        alert('Profile updated successfully!');
+    });
+    
+    // Add initial chat message for profile page
+    const chatMessages = document.getElementById('chat-messages');
+    
+    addMessageToUI('assistant', `Hey Min, I'm Abby.
+
+It's great to connect when you have a moment to learn more about you better. If you're open to it, could you tell me a little more about yourself - maybe your background, interests, or future aspirations? I think it would help create a stronger professional connection.
+
+If you'd like, you can enter your profile description in the My Profile box and save it. That way, I can better understand your experiences and how we can make the most of our conversations.
+
+Looking forward to learning more about you!`);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends "aim_high_app/base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Learning Material Management</h1>
+</div>
+
+<form id="material-form" class="material-form">
+    <div class="step-container">
+        <h3>Step 1: Assignment Title:</h3>
+        <div class="form-group">
+            <input type="text" id="material-title" name="title" value="{% if material %}{{ material.title }}{% else %}3.4 Unique Characteristics of Eukaryotic Cells{% endif %}" class="form-control">
+        </div>
+    </div>
+    
+    <div class="step-container">
+        <h3>Step 2: Source Type</h3>
+        <div class="form-group">
+            <select id="source-type" name="source_type" class="form-control">
+                {% for value, label in source_types %}
+                <option value="{{ value }}" {% if material and material.source_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <div id="selected-type-display">Selected Type: {% if material %}{{ material.get_source_type_display }}{% else %}Online Textbook{% endif %}</div>
+        </div>
+    </div>
+    
+    <div class="step-container">
+        <h3>Step 3: Link to the Content</h3>
+        <div class="form-group">
+            <input type="url" id="content-link" name="content_link" value="{% if material %}{{ material.content_link }}{% else %}https://openstax.org/books/microbiology/pages/3-4-unique-characteristics-of-eukaryotic-cells{% endif %}" class="form-control">
+        </div>
+        <button type="button" id="extract-preview-btn" class="secondary-button">Extract Preview</button>
+    </div>
+    
+    <div class="step-container" id="preview-container">
+        <h3>Step 4: Preview</h3>
+        <div class="preview-content">
+            <div id="material-preview">
+                <p>Click the "Extract Preview" button to see content from the specified URL.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" id="save-material-btn" class="primary-button">Save Material</button>
+        <button type="button" id="create-assignment-btn" class="secondary-button">Create Assignment</button>
+    </div>
+    
+    {% if material %}
+    <input type="hidden" id="material-id" value="{{ material.id }}">
+    {% endif %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Source type select change event
+    const sourceType = document.getElementById('source-type');
+    const typeDisplay = document.getElementById('selected-type-display');
+    
+    sourceType.addEventListener('change', function() {
+        typeDisplay.textContent = 'Selected Type: ' + sourceType.options[sourceType.selectedIndex].text;
+    });
+    
+    // Extract preview button
+    const extractPreviewBtn = document.getElementById('extract-preview-btn');
+    const contentLinkInput = document.getElementById('content-link');
+    const materialPreview = document.getElementById('material-preview');
+    
+    extractPreviewBtn.addEventListener('click', function() {
+        const url = contentLinkInput.value.trim();
+        
+        if (!url) {
+            alert('Please enter a URL to extract content from.');
+            return;
+        }
+        
+        materialPreview.innerHTML = '<p>Extracting content, please wait...</p>';
+        
+        // Mock extraction for demo
+        setTimeout(function() {
+            if (url.includes('eukaryotic-cells')) {
+                materialPreview.innerHTML = '<p>Eukaryotic cells are characterized by a complex nuclear membrane. Also, eukaryotic cells are characterized by the presence of membrane-bound organelles in the cytoplasm. Organelles such as mitochondria, the endoplasmic reticulum (ER), Golgi apparatus, lysosomes, and peroxisomes are held in place by the cytoskeleton, an internal network that directs transport of intracellular components and helps maintain cell shape. The genome of eukaryotic cells is packaged in multiple, rod-shaped chromosomes as opposed to the single, circular-shaped chromosome that characterizes most prokaryotic cells.</p><div class="preview-image-placeholder">Eukaryotic cell diagram placeholder</div>';
+            } else if (url.includes('motion-and-forces')) {
+                materialPreview.innerHTML = '<p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration, while increasing the mass of the object results in a smaller acceleration. Forces are interactions between two objects, with every force having an agent that causes the force.</p>';
+            } else {
+                materialPreview.innerHTML = '<p>Content extracted from URL: ' + url + '</p><p>This is placeholder content that would normally be extracted from the provided URL.</p>';
+            }
+        }, 1000);
+    });
+    
+    // Material form submission
+    const materialForm = document.getElementById('material-form');
+    const materialIdInput = document.getElementById('material-id');
+    const materialTitleInput = document.getElementById('material-title');
+    
+    materialForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveLearningMaterial();
+    });
+    
+    // Create assignment button
+    const createAssignmentBtn = document.getElementById('create-assignment-btn');
+    
+    createAssignmentBtn.addEventListener('click', function() {
+        // First save the material, then create assignment
+        saveLearningMaterial(true);
+    });
+    
+    function saveLearningMaterial(createAssignmentAfter = false) {
+        const title = materialTitleInput.value.trim();
+        const sourceType = document.getElementById('source-type').value;
+        const contentLink = contentLinkInput.value.trim();
+        const materialId = materialIdInput ? materialIdInput.value : null;
+        
+        if (!title || !contentLink) {
+            alert('Please provide both title and content link.');
+            return;
+        }
+        
+        // Get CSRF token
+        const csrftoken = getCookie('csrftoken');
+        
+        // Save learning material
+        fetch('/api/save-learning-material', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                title: title,
+                source_type: sourceType,
+                content_link: contentLink,
+                material_id: materialId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (createAssignmentAfter) {
+                    // Create an assignment with this material
+                    fetch('/api/create-assignment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({
+                            title: title,
+                            assignment_type: 'Causality Analysis',
+                            material_id: data.material_id,
+                            description: 'Assignment created from learning material'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(assignData => {
+                        if (assignData.success) {
+                            alert('Assignment created successfully!');
+                            window.location.href = '/assignments/Causality Analysis/';
+                        } else {
+                            alert('Error creating assignment: ' + (assignData.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error creating assignment:', error);
+                        alert('An error occurred while creating the assignment.');
+                    });
+                } else {
+                    // Just redirect to learning materials list
+                    alert('Learning material saved successfully!');
+                    window.location.href = '/learning-materials/';
+                }
+            } else {
+                alert('Error: ' + (data.error || 'Failed to save learning material'));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving learning material:', error);
+            alert('An error occurred while saving the learning material.');
+        });
+    }
+    
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Add initial chat message
+    const chatMessages = document.getElementById('chat-messages');
+    
+    if (chatMessages) {
+        // Clear existing messages
+        chatMessages.innerHTML = '';
+        
+        // Add chat messages
+        addMessageToUI('assistant', `Hey Min,
+How are you this morning? How's your class going on? What type of learning material are you looking to register?`);
+        
+        addMessageToUI('user', `Hi, Abby,
+I want to add a section of the OpenStax content to create an assignment. I selected "online textbook" as the type—does this look correct? What should I do next?`);
+        
+        addMessageToUI('assistant', `Hey Min,
+
+No worries, you selected the correct type. Let me walk you through the setup step by step:
+1. Go to the content page on OpenStax
+2. Copy the URL from your browser
+3. Paste the URL into Step 3: Link to the Content
+4. Click "Extract Preview" to see a preview of the content
+5. Click "Save Material" to save just the material, or "Create Assignment" to save and create an assignment
+
+Let me know if you need any further assistance!`);
+    }
+});
+
+// Function to add message to UI
+function addMessageToUI(sender, message, animate = true) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${sender}`;
+    
+    let senderName = sender === 'user' ? 'You:' : 'Abby:';
+    
+    messageElement.innerHTML = `
+        <div class="message-sender">${senderName}</div>
+        <div class="message-content">${message.replace(/\n/g, '<br>')}</div>
+    `;
+    
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+</script>
+{% endblock %}
