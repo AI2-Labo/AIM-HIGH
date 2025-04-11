@@ -1,0 +1,47 @@
+/* Resizer styles */
+.resizer {
+    width: 8px;
+    background-color: #e0e0e0;
+    cursor: col-resize;
+    margin: 0 5px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.resizer:hover {
+    background-color: #cccccc;
+}
+
+.resizer::after {
+    content: "⋮";
+    color: #888;
+    font-size: 20px;
+    line-height: 20px;
+    transform: rotate(90deg);
+}
+
+.resizer.dragging {
+    background-color: #0066cc;
+}
+
+.resizer.dragging::after {
+    color: white;
+}
+
+/* Ensure main content and chat panel can be resized */
+.main-content, .chat-panel {
+    transition: none; /* Remove any transitions that might interfere with resizing */
+    min-width: 30%; /* Minimum width */
+    max-width: 70%; /* Maximum width */
+}
+
+/* Add this to the main CSS file */
+.content-wrapper {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}

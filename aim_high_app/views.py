@@ -351,6 +351,7 @@ def chat(request):
         try:
             data = json.loads(request.body)
             message = data.get('message', '')
+            context = data.get('context', {})
             summary_id = data.get('summary_id') or request.session.get('active_summary_id')
             
             # Get summary if available
@@ -372,8 +373,22 @@ def chat(request):
             messages = ChatMessage.objects.filter(summary=summary).order_by('-timestamp')[:10]
             messages = list(reversed(messages))  # Get in chronological order
             
-            # Get response from OpenAI
-            response_text = get_chatbot_response(messages, summary)
+            # Context-aware response (simplified version - would normally use AI)
+            page_context = context.get('name', '')
+            url_path = context.get('url', '')
+            
+            # Determine response based on context and message
+            if 'profile' in url_path:
+                response_text = get_profile_response(message)
+            elif 'learning-material' in url_path:
+                response_text = get_learning_material_response(message)
+            elif 'causality-analysis' in url_path:
+                response_text = get_causality_response(message)
+            elif 'assignments' in url_path:
+                response_text = get_assignment_response(message)
+            else:
+                # Use OpenAI for general responses
+                response_text = get_chatbot_response(messages, summary)
             
             # Store assistant response
             assistant_message = ChatMessage.objects.create(
@@ -756,4 +771,133 @@ def get_summary_data(request):
     except Exception as e:
         print(f"Error getting summary data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# Add these new functions to your existing views.py file
+
+def test_evaluation(request):
+    """View for the student test/evaluation page"""
+    return render(request, 'aim_high_app/test_evaluation.html')
+
+@csrf_exempt
+def evaluate_student_summary(request):
+    """API endpoint to evaluate student summary using cosine similarity"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            student_summary = data.get('summary', '')
             
+            if not student_summary:
+                return JsonResponse({'error': 'No summary provided'}, status=400)
+            
+            # Expert model for comparison
+            expert_model = """Eukaryotic cells are distinguished by their complex nuclear membrane and presence of membrane-bound organelles in the cytoplasm. These organelles include mitochondria, endoplasmic reticulum, Golgi apparatus, lysosomes, and peroxisomes, which are organized by the cytoskeleton. The cytoskeleton maintains cell shape and directs intracellular transport. Unlike prokaryotic cells with circular chromosomes, eukaryotic cells have multiple rod-shaped chromosomes for their genome."""
+            
+            # Calculate similarity score (simplified for demo)
+            similarity_score = calculate_similarity(student_summary, expert_model)
+            
+            # Determine star rating
+            stars = 1
+            if similarity_score > 90:
+                stars = 5
+            elif similarity_score > 70:
+                stars = 4
+            elif similarity_score > 50:
+                stars = 3
+            elif similarity_score > 30:
+                stars = 2
+            
+            # Generate feedback based on score
+            feedback, improvement = generate_feedback(similarity_score)
+            
+            # Get missing concepts based on score
+            missing_concepts = get_missing_concepts(similarity_score)
+            
+            return JsonResponse({
+                'success': True,
+                'similarity_score': similarity_score,
+                'stars': stars,
+                'feedback': feedback,
+                'improvement': improvement,
+                'missing_concepts': missing_concepts
+            })
+        except Exception as e:
+            print(f"Error evaluating student summary: {e}")
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+def calculate_similarity(text1, text2):
+    """
+    Calculate cosine similarity between two texts (simplified)
+    
+    In a real application, this would use proper NLP techniques:
+    1. Tokenize and lemmatize words
+    2. Create word embeddings or TF-IDF vectors
+    3. Calculate actual cosine similarity
+    
+    For this demo, we use a simple word overlap approach
+    """
+    words1 = set(text1.lower().split())
+    words2 = set(text2.lower().split())
+    
+    # Very basic word overlap calculation
+    overlap = len(words1.intersection(words2))
+    word_count = len(words1) + len(words2)
+    
+    # Basic length check - penalize very short summaries
+    if len(words1) < len(words2) * 0.3:
+        return max(5, min(50, int(overlap * 100 / word_count * 2)))
+    
+    # Simple keyword check - award points for key terms
+    key_terms = ["nuclear", "membrane", "organelles", "cytoplasm", "mitochondria", 
+                "endoplasmic", "reticulum", "golgi", "lysosomes", "peroxisomes", 
+                "cytoskeleton", "chromosomes", "circular", "rod-shaped"]
+    
+    term_score = sum(5 for term in key_terms if term in text1.lower())
+    
+    # Combine scores (simplified approach)
+    base_score = int(overlap * 100 / word_count * 2)
+    final_score = min(100, base_score + term_score)
+    
+    return max(5, final_score)  # Minimum score of 5%
+
+def generate_feedback(score):
+    """Generate feedback based on similarity score"""
+    if score < 30:
+        feedback = "Your summary captures only a few key points and lacks completeness."
+        improvement = "Focus on including the main characteristics of eukaryotic cells: nuclear membrane, membrane-bound organelles, cytoskeleton, and chromosome structure."
+    elif score < 50:
+        feedback = "Your summary includes some important concepts but misses several key details."
+        improvement = "Add more specific information about the types of organelles and the role of the cytoskeleton in cell organization."
+    elif score < 70:
+        feedback = "Your summary covers many important aspects of eukaryotic cells but could be more comprehensive."
+        improvement = "Consider adding details about how organelles are organized and the difference in chromosome structure compared to prokaryotes."
+    elif score < 90:
+        feedback = "Your summary is good and covers most key characteristics accurately."
+        improvement = "To further improve, ensure you mention all the specific organelles and their organization by the cytoskeleton."
+    else:
+        feedback = "Excellent summary that comprehensively covers all key characteristics of eukaryotic cells."
+        improvement = "Your summary effectively captures all the essential information with clarity and accuracy."
+    
+    return feedback, improvement
+
+def get_missing_concepts(score):
+    """Generate list of missing concepts based on score"""
+    all_concepts = [
+        "Nuclear Membrane", "Mitochondria", "Endoplasmic Reticulum", 
+        "Golgi Apparatus", "Lysosomes", "Peroxisomes", "Cytoskeleton",
+        "Rod-shaped Chromosomes", "Organelle Organization", "Intracellular Transport"
+    ]
+    
+    # Simulate missing concepts based on score
+    if score >= 90:
+        return []
+    elif score >= 70:
+        return all_concepts[7:]
+    elif score >= 50:
+        return all_concepts[5:]
+    elif score >= 30:
+        return all_concepts[3:]
+    else:
+        return all_concepts[1:]

@@ -1,0 +1,477 @@
+{% extends "aim_high_app/base.html" %}
+
+{% block page_name %}test_evaluation{% endblock %}
+
+{% block content %}
+<div class="go-back">
+    <a href="/" id="back-to-class">&larr; Go back to the Class</a>
+</div>
+
+<div class="evaluation-container">
+    <div class="evaluation-header">
+        <h2>Evaluation Assignment</h2>
+    </div>
+
+    <div class="evaluation-section">
+        <div class="evaluation-title">
+            <h3>3.4 Unique Characteristics of Eukaryotic Cells</h3>
+        </div>
+        
+        <div id="evaluation-accordion">
+            <!-- Learning Material Section -->
+            <div class="accordion-item active">
+                <div class="accordion-header">
+                    <div class="accordion-icon">
+                        <span class="checkmark">✓</span>
+                    </div>
+                    <h4>Learning Material</h4>
+                    <span class="accordion-toggle">▾</span>
+                </div>
+                <div class="accordion-content" style="display: block;">
+                    <div id="material-content" class="content-preview">
+                        <p>Eukaryotic cells are characterized by a complex nuclear membrane. Also, eukaryotic cells are characterized by the presence of membrane-bound organelles in the cytoplasm. Organelles such as mitochondria, the endoplasmic reticulum (ER), Golgi apparatus, lysosomes, and peroxisomes are held in place by the cytoskeleton, an internal network that directs transport of intracellular components and helps maintain cell shape (Figure 3.35). The genome of eukaryotic cells is packaged in multiple, rod-shaped chromosomes as opposed to the single, circular-shaped chromosome that characterizes most prokaryotic cells. Table 3.2 compares the characteristics of eukaryotic cell structures with those of bacteria and archaea.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Write Your Summary Section -->
+            <div class="accordion-item active">
+                <div class="accordion-header">
+                    <div class="accordion-icon">
+                        <span class="checkmark">✓</span>
+                    </div>
+                    <h4>Write your Summary</h4>
+                    <span class="accordion-toggle">▾</span>
+                </div>
+                <div class="accordion-content" style="display: block;">
+                    <div class="text-area-container">
+                        <textarea id="student-summary" placeholder="Write your summary of the learning material here..."></textarea>
+                    </div>
+                    <div class="evaluation-buttons">
+                        <button id="reset-summary" class="secondary-button">Reset</button>
+                        <button id="evaluate-summary" class="primary-button">Evaluate</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feedback Section -->
+            <div class="accordion-item active">
+                <div class="accordion-header">
+                    <div class="accordion-icon">
+                        <span class="checkmark">✓</span>
+                    </div>
+                    <h4>Feedback on Your Summary (Version from 02/15/2025 at 09:25:35 PM)</h4>
+                    <span class="accordion-toggle">▾</span>
+                </div>
+                <div class="accordion-content" style="display: block;">
+                    <div class="progress-container">
+                        <div class="progress-label">Progress</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 7%;"></div>
+                        </div>
+                        <div class="progress-percentage">7%</div>
+                    </div>
+                    
+                    <div class="knowledge-map-container">
+                        <h3>Your Knowledge Map</h3>
+                        <div id="knowledge-map" class="knowledge-map"></div>
+                    </div>
+                    
+                    <div class="missing-concepts">
+                        <h3>Missing Concepts</h3>
+                        <div class="concept-grid" id="missing-concepts-grid">
+                            <div class="concept-item">DNA</div>
+                            <div class="concept-item">Initiation</div>
+                            <div class="concept-item">Termination</div>
+                            <div class="concept-item">Elongation</div>
+                            <div class="concept-item">Gene</div>
+                            <div class="concept-item">Promoter Sequence</div>
+                            <div class="concept-item">RNA Polymerase</div>
+                            <div class="concept-item">mRNA Transcript</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feedback-section">
+                        <div class="feedback-header">
+                            <div class="feedback-title">Content Quality:</div>
+                            <div class="star-rating">
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star">★</span>
+                                <span class="star">★</span>
+                            </div>
+                        </div>
+                        <div class="feedback-content">
+                            <p>Evaluates the accuracy, completeness, and clarity of the summary. A high quality summary captures key ideas concisely, maintains factual accuracy, and presents information logically without unnecessary details or omissions.</p>
+                            <div class="improvement-section">
+                                <div class="improvement-title">How To Improve:</div>
+                                <p>Your summary captures some key points but lacks completeness and clarity. Important details are missing, making it difficult to grasp the main ideas fully. To improve, ensure all key concepts are included and clearly explained.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize knowledge map
+    createKnowledgeMap();
+    
+    // Setup evaluation functionality
+    const studentSummary = document.getElementById('student-summary');
+    const evaluateButton = document.getElementById('evaluate-summary');
+    const resetButton = document.getElementById('reset-summary');
+    const progressFill = document.querySelector('.progress-fill');
+    const progressPercentage = document.querySelector('.progress-percentage');
+    const starRating = document.querySelector('.star-rating');
+    const feedbackContent = document.querySelector('.feedback-content p');
+    const improvementContent = document.querySelector('.improvement-section p');
+    
+    // Expert model for comparison (simplified for demo)
+    const expertModel = `Eukaryotic cells are distinguished by their complex nuclear membrane and presence of membrane-bound organelles in the cytoplasm. These organelles include mitochondria, endoplasmic reticulum, Golgi apparatus, lysosomes, and peroxisomes, which are organized by the cytoskeleton. The cytoskeleton maintains cell shape and directs intracellular transport. Unlike prokaryotic cells with circular chromosomes, eukaryotic cells have multiple rod-shaped chromosomes for their genome.`;
+    
+    // Sample student attempts with increasing similarity scores
+    const sampleAttempts = [
+        { 
+            text: "Eukaryotic cells have a nuclear membrane.",
+            score: 7,
+            stars: 1,
+            feedback: "Your summary is very brief and misses most of the key characteristics of eukaryotic cells.",
+            improvement: "Add information about membrane-bound organelles, the cytoskeleton, and genome organization to make your summary more complete."
+        },
+        { 
+            text: "Eukaryotic cells have a complex nuclear membrane and contain organelles.",
+            score: 25,
+            stars: 2,
+            feedback: "Your summary mentions the nuclear membrane and organelles but lacks details about specific organelles and other key characteristics.",
+            improvement: "Specify the types of organelles found in eukaryotic cells and mention how the genome is organized differently from prokaryotic cells."
+        },
+        {
+            text: "Eukaryotic cells have a complex nuclear membrane and organelles such as mitochondria and ER. Their DNA is in chromosomes, unlike prokaryotes.",
+            score: 55,
+            stars: 3,
+            feedback: "Your summary includes key information about nuclear membrane, some organelles, and genome organization.",
+            improvement: "Add details about the cytoskeleton's role in organizing organelles and maintaining cell shape to make your summary more comprehensive."
+        },
+        {
+            text: "Eukaryotic cells are characterized by a complex nuclear membrane and membrane-bound organelles like mitochondria, ER, Golgi apparatus, lysosomes, and peroxisomes. The cytoskeleton organizes these organelles and maintains cell shape. Unlike prokaryotes with circular chromosomes, eukaryotes have rod-shaped ones.",
+            score: 85,
+            stars: 4,
+            feedback: "Excellent summary that covers most key characteristics of eukaryotic cells accurately and concisely.",
+            improvement: "To further improve, you could mention that the cytoskeleton also directs intracellular transport."
+        },
+        {
+            text: "Eukaryotic cells are characterized by a complex nuclear membrane and numerous membrane-bound organelles in the cytoplasm, including mitochondria, endoplasmic reticulum, Golgi apparatus, lysosomes, and peroxisomes. These organelles are organized by the cytoskeleton, which maintains cell shape and directs intracellular transport. Unlike prokaryotic cells with their single circular chromosome, eukaryotic cells package their genome in multiple rod-shaped chromosomes.",
+            score: 100,
+            stars: 5,
+            feedback: "Perfect summary that comprehensively covers all key characteristics of eukaryotic cells with accuracy and clarity.",
+            improvement: "No improvements needed. Your summary effectively captures all the essential information."
+        }
+    ];
+    
+    // Evaluate button click handler
+    if (evaluateButton) {
+        evaluateButton.addEventListener('click', function() {
+            const summary = studentSummary.value.trim();
+            
+            if (!summary) {
+                alert('Please write a summary before evaluating.');
+                return;
+            }
+            
+            // Calculate similarity (simplified for demo)
+            const similarityScore = calculateSimilarity(summary, expertModel);
+            
+            // Update progress bar
+            updateProgress(similarityScore);
+            
+            // Update star rating and feedback
+            updateFeedback(similarityScore);
+            
+            // Update knowledge map
+            updateKnowledgeMap(similarityScore);
+            
+            // Add chat message
+            addChatMessage(similarityScore);
+        });
+    }
+    
+    // Reset button click handler
+    if (resetButton) {
+        resetButton.addEventListener('click', function() {
+            studentSummary.value = '';
+            updateProgress(7);
+            updateStars(1);
+            
+            feedbackContent.textContent = 'Evaluates the accuracy, completeness, and clarity of the summary. A high quality summary captures key ideas concisely, maintains factual accuracy, and presents information logically without unnecessary details or omissions.';
+            
+            improvementContent.textContent = 'Your summary captures some key points but lacks completeness and clarity. Important details are missing, making it difficult to grasp the main ideas fully. To improve, ensure all key concepts are included and clearly explained.';
+            
+            createKnowledgeMap(); // Reset knowledge map
+        });
+    }
+    
+    // Function to calculate similarity between student summary and expert model
+    function calculateSimilarity(studentText, expertText) {
+        // In a real application, this would use cosine similarity with word embeddings
+        // For demo purposes, we use a simplified approach: sample from predefined attempts
+        
+        const wordCount = studentText.split(/\s+/).length;
+        
+        if (wordCount < 10) {
+            return sampleAttempts[0].score;
+        } else if (wordCount < 20) {
+            return sampleAttempts[1].score;
+        } else if (wordCount < 40) {
+            return sampleAttempts[2].score;
+        } else if (wordCount < 70) {
+            return sampleAttempts[3].score;
+        } else {
+            return sampleAttempts[4].score;
+        }
+    }
+    
+    // Function to update progress bar
+    function updateProgress(score) {
+        progressFill.style.width = score + '%';
+        progressPercentage.textContent = score + '%';
+    }
+    
+    // Function to update feedback based on score
+    function updateFeedback(score) {
+        let attempt;
+        
+        if (score <= 10) {
+            attempt = sampleAttempts[0];
+        } else if (score <= 30) {
+            attempt = sampleAttempts[1];
+        } else if (score <= 60) {
+            attempt = sampleAttempts[2];
+        } else if (score <= 90) {
+            attempt = sampleAttempts[3];
+        } else {
+            attempt = sampleAttempts[4];
+        }
+        
+        updateStars(attempt.stars);
+        feedbackContent.textContent = attempt.feedback;
+        improvementContent.textContent = attempt.improvement;
+    }
+    
+    // Function to update star rating
+    function updateStars(numFilled) {
+        const stars = starRating.querySelectorAll('.star');
+        
+        stars.forEach((star, index) => {
+            if (index < numFilled) {
+                star.classList.add('filled');
+            } else {
+                star.classList.remove('filled');
+            }
+        });
+    }
+    
+    // Function to create knowledge map
+    function createKnowledgeMap() {
+        const width = document.getElementById('knowledge-map').clientWidth;
+        const height = document.getElementById('knowledge-map').clientHeight || 250;
+        
+        // Clear previous SVG
+        d3.select('#knowledge-map').html('');
+        
+        const svg = d3.select('#knowledge-map')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+        
+        // Nodes and links for initial knowledge map
+        const nodes = [
+            { id: "dna", name: "DNA" },
+            { id: "transcription", name: "Transcription" },
+            { id: "mrna", name: "mRNA Transcript" },
+            { id: "initiation", name: "Initiation" },
+            { id: "termination", name: "Termination" },
+            { id: "gene", name: "Gene" },
+            { id: "rna_polymerase", name: "RNA Polymerase" },
+            { id: "elongation", name: "Elongation" }
+        ];
+        
+        const links = [
+            { source: "dna", target: "transcription", type: "input" },
+            { source: "transcription", target: "mrna", type: "produces" },
+            { source: "initiation", target: "elongation", type: "followed by" },
+            { source: "elongation", target: "termination", type: "followed by" },
+            { source: "rna_polymerase", target: "transcription", type: "catalyzes" },
+            { source: "gene", target: "transcription", type: "undergoes" }
+        ];
+        
+        // Create a force simulation
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(80))
+            .force("charge", d3.forceManyBody().strength(-150))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+        
+        // Add links
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("stroke", "#f2994a")
+            .attr("stroke-opacity", 0.6)
+            .attr("stroke-width", 2);
+        
+        // Add nodes
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .enter()
+            .append("circle")
+            .attr("r", 10)
+            .attr("fill", "#f2994a")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+        
+        // Add node labels
+        const label = svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .enter()
+            .append("text")
+            .text(d => d.name)
+            .attr("font-size", "10px")
+            .attr("dx", 12)
+            .attr("dy", 4);
+        
+        // Update positions on tick
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+            
+            label
+                .attr("x", d => d.x)
+                .attr("y", d => d.y);
+        });
+        
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+    }
+    
+    // Function to update knowledge map based on score
+    function updateKnowledgeMap(score) {
+        // This would be more sophisticated in a real application
+        // For this demo, we're just recreating the same map
+        createKnowledgeMap();
+    }
+    
+    // Function to add chat message based on evaluation
+    function addChatMessage(score) {
+        const chatMessages = document.getElementById('chat-messages');
+        if (!chatMessages) return;
+        
+        // Clear existing messages
+        chatMessages.innerHTML = '';
+        
+        // Add initial message
+        let message;
+        
+        if (score < 30) {
+            message = `Hey Yojin,
+
+I've evaluated your summary and it currently has a ${score}% similarity to the expert model. There's substantial room for improvement!
+
+Your summary is missing several key concepts about eukaryotic cells. Try to include more specific details about:
+• The complex nuclear membrane
+• The various membrane-bound organelles
+• The role of the cytoskeleton
+• How the genome is organized
+
+Remember, a good summary should capture all the essential information concisely. Would you like some specific examples of what to include?`;
+        } else if (score < 70) {
+            message = `Hey Yojin,
+
+I've evaluated your summary and it has a ${score}% similarity to the expert model. You're making good progress!
+
+Your summary includes some important concepts, but it could be more comprehensive. Consider adding more details about:
+• All the types of organelles mentioned in the text
+• The specific role of the cytoskeleton
+• The difference in chromosome structure compared to prokaryotes
+
+Keep refining your summary to include all key points from the original text. Let me know if you'd like more specific guidance!`;
+        } else {
+            message = `Hey Yojin,
+
+Great job! Your summary has a ${score}% similarity to the expert model. That's excellent work!
+
+Your summary effectively captures the key characteristics of eukaryotic cells, including:
+• The complex nuclear membrane
+• The presence of membrane-bound organelles
+• The role of the cytoskeleton
+• The unique chromosome structure
+
+You've successfully identified and explained the most important concepts from the learning material. Is there anything specific you'd like to know more about?`;
+        }
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message assistant';
+        messageElement.innerHTML = `<div class="message-sender">Jordan:</div><div class="message-content">${message.replace(/\n/g, '<br>')}</div>`;
+        chatMessages.appendChild(messageElement);
+    }
+    
+    // Add initial chat message
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+        // Clear existing messages
+        chatMessages.innerHTML = '';
+        
+        // Add welcome message
+        const message = `Hey Yojin,
+
+Welcome to the evaluation feature! This is where you can test your understanding of the learning material by writing a summary.
+
+I'll evaluate your summary using cosine similarity to compare it with an expert model. You'll receive:
+• A similarity score (shown in the progress bar)
+• A knowledge map of concepts
+• A list of any missing concepts
+• A quality rating and personalized feedback
+
+Try writing a summary of the eukaryotic cells content in the text area, then click "Evaluate" to see your results!`;
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message assistant';
+        messageElement.innerHTML = `<div class="message-sender">Jordan:</div><div class="message-content">${message.replace(/\n/g, '<br>')}</div>`;
+        chatMessages.appendChild(messageElement);
+    }
+});
+</script>
+{% endblock %}

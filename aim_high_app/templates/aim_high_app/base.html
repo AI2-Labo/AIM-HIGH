@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/resizer.css' %}">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
@@ -23,6 +24,7 @@
                     <a href="{% url 'classes' %}">My Classes</a>
                     <a href="{% url 'learning_materials' %}">Learning Materials</a>
                     <a href="{% url 'assignments' %}">Assignments</a>
+                    <a href="{% url 'test_evaluation' %}">Test</a>
                 </div>
             </div>
             <a href="#" class="logout-button">Log out</a>
@@ -52,6 +54,7 @@
                             <li><a href="{% url 'assignments_by_type' 'Creative Writing' %}">Creative Writing</a></li>
                         </ul>
                     </li>
+                    <li><a href="{% url 'test_evaluation' %}">Test</a></li>
                 </ul>
             </div>
             
@@ -60,9 +63,12 @@
                     {% block content %}{% endblock %}
                 </div>
                 
+                <!-- Add resizer div between content and chat -->
+                <div class="resizer" id="panel-resizer"></div>
+                
                 <div class="chat-panel">
                     <div class="chat-header">
-                        <h2>Conversation with Abby</h2>
+                        <h2>Conversation with Jordan</h2>
                     </div>
                     
                     <div class="chat-messages" id="chat-messages">
@@ -85,6 +91,18 @@
     
     {% load static %}
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/resizer.js' %}"></script>
+    
+    <!-- Add current page context for the chatbot -->
+    <script>
+        // Set the current page context for the chatbot
+        const currentPage = {
+            name: "{% block page_name %}home{% endblock %}",
+            url: window.location.pathname,
+            title: document.title
+        };
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

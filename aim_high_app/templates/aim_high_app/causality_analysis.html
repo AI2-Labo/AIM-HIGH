@@ -1,5 +1,7 @@
 {% extends "aim_high_app/base.html" %}
 
+{% block page_name %}causality_analysis{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>Causality Analysis Assignments</h1>
@@ -26,48 +28,50 @@
         <h3>Step 2: Preview{% if assignment %} the Reference Model{% endif %}</h3>
         
         <div class="preview-container">
-            <div class="accordion-item active">
-                <div class="accordion-header">
-                    <span class="accordion-indicator">⚪</span>
-                    <h4>Cause-and-Effect Explanation</h4>
-                    <span class="accordion-toggle">▾</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation-text">
-                        <p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration, while increasing the mass of the object results in a smaller acceleration. Forces are interactions between two objects, with every force having an agent that causes the force. Forces can be contact forces, which act on an object by touching it, or long-range forces, which act without physical contact.</p>
-                        <p>Force is a vector quantity that has a magnitude and a direction. Multiple forces acting on an object result in a net force that determines the object's motion. The net force is the vector sum of all the individual forces acting on the object. Force vectors can be represented by arrows, with the tail positioned on the object depicted as a particle, and the arrow pointing in the direction of the force. The length of the arrow is proportional to the magnitude of the force. Newton's first law states that when an object has no net force acting on it, if it is at rest, it will remain at rest. If it is moving, it will continue in a straight line at a constant speed. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration while increasing the mass of the object results in a smaller acceleration. This leads to the basis of Newton's second law, which states that acceleration is equal to the force divided by the mass. This can also be stated as force is equal to mass times acceleration (F=ma). Newton's third law states that for every action, there is an equal and opposite reaction. This law is illustrated through experiments with spring toys, showing that forces between objects are always equal and opposite.</p>
-                        <p>Overall, the reading material provides a comprehensive overview of forces, their properties, and their role in causing motion.</p>
+            <div class="model-content" id="model-content-display">
+                <div class="accordion-item active">
+                    <div class="accordion-header">
+                        <span class="accordion-indicator">⚪</span>
+                        <h4>Cause-and-Effect Explanation</h4>
+                        <span class="accordion-toggle">▾</span>
                     </div>
-                </div>
-            </div>
-            
-            <div class="accordion-item active">
-                <div class="accordion-header">
-                    <span class="accordion-indicator">⚪</span>
-                    <h4>Cause-and-Effect Model</h4>
-                    <span class="accordion-toggle">▾</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="model-graph" id="causality-graph">
-                        <!-- D3.js will render the graph here -->
-                    </div>
-                    
-                    <div class="model-variables">
-                        <div class="variables-column">
-                            <h5>Key Variables</h5>
-                            <div class="variable-item">Acceleration</div>
-                            <div class="variable-item">Motion</div>
-                            <div class="variable-item">First Law</div>
-                            <div class="variable-item">Net Force</div>
-                            <div class="variable-item">Mass</div>
+                    <div class="accordion-content" style="display: block;">
+                        <div class="explanation-text" id="explanation-text">
+                            <p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration, while increasing the mass of the object results in a smaller acceleration. Forces are interactions between two objects, with every force having an agent that causes the force. Forces can be contact forces, which act on an object by touching it, or long-range forces, which act without physical contact.</p>
+                            <p>Force is a vector quantity that has a magnitude and a direction. Multiple forces acting on an object result in a net force that determines the object's motion. The net force is the vector sum of all the individual forces acting on the object. Force vectors can be represented by arrows, with the tail positioned on the object depicted as a particle, and the arrow pointing in the direction of the force. The length of the arrow is proportional to the magnitude of the force. Newton's first law states that when an object has no net force acting on it, if it is at rest, it will remain at rest. If it is moving, it will continue in a straight line at a constant speed. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration while increasing the mass of the object results in a smaller acceleration. This leads to the basis of Newton's second law, which states that acceleration is equal to the force divided by the mass. This can also be stated as force is equal to mass times acceleration (F=ma). Newton's third law states that for every action, there is an equal and opposite reaction. This law is illustrated through experiments with spring toys, showing that forces between objects are always equal and opposite.</p>
+                            <p>Overall, the reading material provides a comprehensive overview of forces, their properties, and their role in causing motion.</p>
                         </div>
-                        <div class="variables-column">
-                            <h5>Cause-and-Effect Relations</h5>
-                            <div class="relation-item">Force >>>> Motion</div>
-                            <div class="relation-item">Net Force >>> Motion</div>
-                            <div class="relation-item">Contact Force >>> Motion</div>
-                            <div class="relation-item">Force >>> Second Law</div>
-                            <div class="relation-item">Second Law >>> Force</div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item active">
+                    <div class="accordion-header">
+                        <span class="accordion-indicator">⚪</span>
+                        <h4>Cause-and-Effect Model</h4>
+                        <span class="accordion-toggle">▾</span>
+                    </div>
+                    <div class="accordion-content" style="display: block;">
+                        <div class="model-graph" id="causality-graph">
+                            <!-- D3.js will render the graph here -->
+                        </div>
+                        
+                        <div class="model-variables">
+                            <div class="variables-column" id="variables-column">
+                                <h5>Key Variables</h5>
+                                <div class="variable-item">Acceleration</div>
+                                <div class="variable-item">Motion</div>
+                                <div class="variable-item">First Law</div>
+                                <div class="variable-item">Net Force</div>
+                                <div class="variable-item">Mass</div>
+                            </div>
+                            <div class="variables-column" id="relations-column">
+                                <h5>Cause-and-Effect Relations</h5>
+                                <div class="relation-item">Force >>>> Motion</div>
+                                <div class="relation-item">Net Force >>> Motion</div>
+                                <div class="relation-item">Contact Force >>> Motion</div>
+                                <div class="relation-item">Force >>> Second Law</div>
+                                <div class="relation-item">Second Law >>> Force</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -78,11 +82,44 @@
     <div class="step-container">
         <h3>Step 3: Log</h3>
         <div class="log-entries">
-            <div class="log-entry">Reference Model 2 (Modified) created 02/14/2025 at 10:25:36 PM</div>
-            <div class="log-entry">Reference Model 1 (Initial Model) created 02/14/2025 at 10:20:47 PM</div>
+            <div class="log-entry"><a href="#" class="reference-model-link" data-model="2">Reference Model 2 (Modified)</a> created 02/14/2025 at 10:25:36 PM</div>
+            <div class="log-entry"><a href="#" class="reference-model-link" data-model="1">Reference Model 1 (Initial Model)</a> created 02/14/2025 at 10:20:47 PM</div>
         </div>
     </div>
+    
+    <!-- Navigation buttons to return to current model -->
+    <div id="model-navigation" class="model-navigation" style="display: none;">
+        <button id="return-to-current" class="secondary-button">Return to Current Model</button>
+        <span id="viewing-model-text">Currently viewing: Reference Model</span>
+    </div>
 </div>
+
+<style>
+.model-navigation {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.viewing-model-text {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.reference-model-link {
+    color: #0066cc;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.reference-model-link:hover {
+    text-decoration: underline;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -91,6 +128,167 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the causality graph
     createCausalityGraph();
+    
+    // Store original model content for restoration
+    const originalModelContent = {
+        explanation: document.getElementById('explanation-text').innerHTML,
+        variables: document.getElementById('variables-column').innerHTML,
+        relations: document.getElementById('relations-column').innerHTML
+    };
+    
+    // Handle reference model links
+    const referenceModelLinks = document.querySelectorAll('.reference-model-link');
+    const modelNavigation = document.getElementById('model-navigation');
+    const returnToCurrentBtn = document.getElementById('return-to-current');
+    const viewingModelText = document.getElementById('viewing-model-text');
+    const explanationText = document.getElementById('explanation-text');
+    const variablesColumn = document.getElementById('variables-column');
+    const relationsColumn = document.getElementById('relations-column');
+    
+    referenceModelLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modelNumber = this.getAttribute('data-model');
+            
+            // Show navigation area
+            if (modelNavigation) {
+                modelNavigation.style.display = 'flex';
+                viewingModelText.textContent = `Currently viewing: Reference Model ${modelNumber}`;
+            }
+            
+            // Update content based on model number
+            if (modelNumber === '1') {
+                // Update explanation text
+                if (explanationText) {
+                    explanationText.innerHTML = `
+                        <p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration.</p>
+                    `;
+                }
+                
+                // Update variables
+                if (variablesColumn) {
+                    variablesColumn.innerHTML = `
+                        <h5>Key Variables</h5>
+                        <div class="variable-item">Force</div>
+                        <div class="variable-item">Motion</div>
+                        <div class="variable-item">Acceleration</div>
+                        <div class="variable-item">Mass</div>
+                    `;
+                }
+                
+                // Update relations
+                if (relationsColumn) {
+                    relationsColumn.innerHTML = `
+                        <h5>Cause-and-Effect Relations</h5>
+                        <div class="relation-item">Force >>>> Motion</div>
+                        <div class="relation-item">Force >>>> Acceleration</div>
+                        <div class="relation-item">Mass >>>> Acceleration</div>
+                    `;
+                }
+                
+                // Update graph 
+                updateGraph([
+                    { id: "Force", name: "Force" },
+                    { id: "Motion", name: "Motion" },
+                    { id: "Acceleration", name: "Acceleration" },
+                    { id: "Mass", name: "Mass" }
+                ], [
+                    { source: "Force", target: "Motion", type: "causes" },
+                    { source: "Force", target: "Acceleration", type: "causes" },
+                    { source: "Mass", target: "Acceleration", type: "affects" }
+                ]);
+                
+            } else if (modelNumber === '2') {
+                // Update explanation text
+                if (explanationText) {
+                    explanationText.innerHTML = `
+                        <p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration. Forces can be contact forces, which act on an object by touching it, or long-range forces, which act without physical contact.</p>
+                        <p>Force is a vector quantity that has a magnitude and a direction. Multiple forces acting on an object result in a net force that determines the object's motion. The net force is the vector sum of all the individual forces acting on the object.</p>
+                    `;
+                }
+                
+                // Update variables
+                if (variablesColumn) {
+                    variablesColumn.innerHTML = `
+                        <h5>Key Variables</h5>
+                        <div class="variable-item">Acceleration</div>
+                        <div class="variable-item">Motion</div>
+                        <div class="variable-item">First Law</div>
+                        <div class="variable-item">Net Force</div>
+                        <div class="variable-item">Mass</div>
+                        <div class="variable-item">Contact Force</div>
+                    `;
+                }
+                
+                // Update relations
+                if (relationsColumn) {
+                    relationsColumn.innerHTML = `
+                        <h5>Cause-and-Effect Relations</h5>
+                        <div class="relation-item">Force >>>> Motion</div>
+                        <div class="relation-item">Net Force >>> Motion</div>
+                        <div class="relation-item">Contact Force >>> Motion</div>
+                        <div class="relation-item">Force >>> Second Law</div>
+                        <div class="relation-item">Second Law >>> Force</div>
+                    `;
+                }
+                
+                // Update graph
+                updateGraph([
+                    { id: "Motion", name: "Motion" },
+                    { id: "Force", name: "Force" },
+                    { id: "Acceleration", name: "Acceleration" },
+                    { id: "Mass", name: "Mass" },
+                    { id: "Net Force", name: "Net Force" },
+                    { id: "First Law", name: "First Law" },
+                    { id: "Second Law", name: "Second Law" },
+                    { id: "Contact Force", name: "Contact Force" }
+                ], [
+                    { source: "Force", target: "Motion", type: "causes" },
+                    { source: "Force", target: "Acceleration", type: "causes" },
+                    { source: "Net Force", target: "Motion", type: "determines" },
+                    { source: "Mass", target: "Acceleration", type: "affects" },
+                    { source: "Force", target: "Second Law", type: "relates to" },
+                    { source: "Second Law", target: "Acceleration", type: "defines" },
+                    { source: "First Law", target: "Motion", type: "describes" },
+                    { source: "Contact Force", target: "Motion", type: "causes" }
+                ]);
+            }
+            
+            // Scroll to the top of the model display
+            document.getElementById('model-content-display').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+    
+    // Return to current model button
+    if (returnToCurrentBtn) {
+        returnToCurrentBtn.addEventListener('click', function() {
+            // Restore original content
+            if (explanationText) {
+                explanationText.innerHTML = originalModelContent.explanation;
+            }
+            
+            if (variablesColumn) {
+                variablesColumn.innerHTML = originalModelContent.variables;
+            }
+            
+            if (relationsColumn) {
+                relationsColumn.innerHTML = originalModelContent.relations;
+            }
+            
+            // Recreate original graph
+            createCausalityGraph();
+            
+            // Hide navigation area
+            modelNavigation.style.display = 'none';
+            
+            // Scroll to the top of the model display
+            document.getElementById('model-content-display').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    }
     
     function createCausalityGraph() {
         // Sample data
@@ -116,9 +314,20 @@ document.addEventListener('DOMContentLoaded', function() {
             { source: "Contact Force", target: "Motion", type: "causes" }
         ];
         
+        createGraph(nodes, links);
+    }
+    
+    function updateGraph(nodes, links) {
+        // Clear previous graph
+        d3.select("#causality-graph").html("");
+        // Create new graph with provided data
+        createGraph(nodes, links);
+    }
+    
+    function createGraph(nodes, links) {
         // Set up the SVG container
         const width = document.getElementById('causality-graph').clientWidth;
-        const height = 300;
+        const height = 250; // Use a fixed height for consistency
         
         const svg = d3.select("#causality-graph")
             .append("svg")
@@ -200,43 +409,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add initial chat messages
+    // Add initial chat message
     const chatMessages = document.getElementById('chat-messages');
     
-    addMessageToUI('assistant', `Hey Min
-How are you this afternoon? Do you want to create a causality analysis assignment?`);
-    
-    addMessageToUI('user', `Hi, Abby,
-Yes, I want to create a new assignment.`);
-    
-    addMessageToUI('assistant', `Gotcha!
-First, you need to choose a registered source material. Use the "Search" function to find one. If you haven't registered the relevant learning material yet, head to the "Learning Materials" menu and add it first.`);
-    
-addMessageToUI('assistant', `Hey Min,
-You chose the learning material, "4.1 Motion and Forces."
-I'll generate a reference causality description and share it with you shortly. Let me know if there's anything specific you'd like me to focus on. I will be back shortly.`);
+    if (chatMessages) {
+        // Clear existing messages
+        chatMessages.innerHTML = '';
+        
+        // Add context-specific message for causality analysis page
+        addMessageToUI('assistant', `Hey Yojin,
+I see you're working on a causality analysis assignment. This is where you can create and analyze cause-and-effect relationships in your learning materials.
 
-   addMessageToUI('assistant', `Hey Min,
-Here's Reference Model 1, along with the cause-and-effect explanation and the cause-and-effect model, which outlines key variables, their relationships, and the concept model. Take a look and let me know your thoughts:
-• If you agree with this reference model, just reply with "I like it."
-• If you'd prefer to regenerate the entire suggestion, reply with "regenerate."
-• If you want to adjust the key concepts, let me know which ones you'd like to drop or add by saying "I like to drop..." or "I want to add..." or "I like to drop... and add..."`);
+You can:
+• Select a learning material to analyze
+• Create reference models that show relationships between concepts
+• View previous reference models by clicking on them in the log section
 
-   addMessageToUI('user', `Abby, I am new to this system. It is a stupid question. Why do I need a reference model?`);
+Notice that when you click on a reference model in the log section, the current display will update to show that model. You can always return to your current model by clicking the "Return to Current Model" button.
 
-   addMessageToUI('assistant', `Not a stupid question at all! A reference model helps structure and clarify key concepts and relationships, and it's used as the foundation for an assessment model in this assignment.`);
-
-   addMessageToUI('user', `Aha, thanks! I see that "contact force" is missing along with its causal relationships with other variables. Everything else looks good!`);
-
-   addMessageToUI('assistant', `No problem! I'll re-generate a causality description based on your input and share it with you shortly.`);
-
-   addMessageToUI('assistant', `Here's the 2nd reference model. Let me know your thoughts.`);
-
-   addMessageToUI('user', `Abby, this model looks great. I really appreciate your support.`);
-
-   addMessageToUI('assistant', `My pleasure! Model 2 will serve as the reference model for the assignment. You now have the causality analysis assignment for 4.1 Motion and Forces.
-
-Let me know if there's anything else I can help with!`);
+Need help with creating a new causality model or understanding the existing ones?`);
+    }
 });
+
+// Function to add message to UI (if not defined elsewhere)
+function addMessageToUI(sender, message) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${sender}`;
+    
+    let senderName = sender === 'user' ? 'You:' : 'Jordan:';
+    
+    messageElement.innerHTML = `
+        <div class="message-sender">${senderName}</div>
+        <div class="message-content">${message.replace(/\n/g, '<br>')}</div>
+    `;
+    
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 </script>
 {% endblock %}

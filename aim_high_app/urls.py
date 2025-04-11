@@ -18,6 +18,10 @@ urlpatterns = [
     path('assignments/causality-analysis/<int:assignment_id>/', views.causality_analysis, name='edit_causality_analysis'),
     path('assignments/causality-analysis/', views.causality_analysis, name='new_causality_analysis'),
     
+    # Testing and evaluation routes
+    path('test/', views.test_evaluation, name='test_evaluation'),
+    path('api/evaluate-student-summary', views.evaluate_student_summary, name='evaluate_student_summary'),
+    
     # API routes
     path('api/learning-material', views.submit_learning_material, name='submit_learning_material'),
     path('api/generate-summary', views.create_summary, name='create_summary'),
