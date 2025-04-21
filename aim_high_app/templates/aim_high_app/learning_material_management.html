@@ -1,5 +1,7 @@
 {% extends "aim_high_app/base.html" %}
 
+{% block page_name %}learning_material{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>Learning Material Management</h1>
@@ -36,7 +38,7 @@
     <div class="step-container" id="preview-container">
         <h3>Step 4: Preview</h3>
         <div class="preview-content">
-            <div id="material-preview">
+            <div id="material-preview" class="material-preview-frame">
                 <p>Click the "Extract Preview" button to see content from the specified URL.</p>
             </div>
         </div>
@@ -51,6 +53,28 @@
     <input type="hidden" id="material-id" value="{{ material.id }}">
     {% endif %}
 </form>
+
+<style>
+.material-preview-frame {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: auto;
+}
+
+.material-preview-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -77,19 +101,67 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        materialPreview.innerHTML = '<p>Extracting content, please wait...</p>';
+        materialPreview.innerHTML = '<p>Loading preview, please wait...</p>';
         
-        // Mock extraction for demo
-        setTimeout(function() {
-            if (url.includes('eukaryotic-cells')) {
-                materialPreview.innerHTML = '<p>Eukaryotic cells are characterized by a complex nuclear membrane. Also, eukaryotic cells are characterized by the presence of membrane-bound organelles in the cytoplasm. Organelles such as mitochondria, the endoplasmic reticulum (ER), Golgi apparatus, lysosomes, and peroxisomes are held in place by the cytoskeleton, an internal network that directs transport of intracellular components and helps maintain cell shape. The genome of eukaryotic cells is packaged in multiple, rod-shaped chromosomes as opposed to the single, circular-shaped chromosome that characterizes most prokaryotic cells.</p><div class="preview-image-placeholder">Eukaryotic cell diagram placeholder</div>';
-            } else if (url.includes('motion-and-forces')) {
-                materialPreview.innerHTML = '<p>Forces are the driving factor behind motion. Forces are essentially pushes or pulls that cause objects to move. By conducting experiments with a hacksaw blade and a truck, the concept of forces and their effects on motion is explored. When a constant force is applied to an object, it results in a constant acceleration. Increasing the force leads to a larger acceleration, while increasing the mass of the object results in a smaller acceleration. Forces are interactions between two objects, with every force having an agent that causes the force.</p>';
-            } else {
-                materialPreview.innerHTML = '<p>Content extracted from URL: ' + url + '</p><p>This is placeholder content that would normally be extracted from the provided URL.</p>';
-            }
-        }, 1000);
+        // Create iframe for web page preview
+        try {
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.onload = function() {
+                console.log('iframe loaded');
+            };
+            iframe.onerror = function() {
+                materialPreview.innerHTML = '<p>Failed to load preview. This could be due to security restrictions or the website not allowing embedding.</p>';
+            };
+            
+            // Clear preview area and add iframe
+            materialPreview.innerHTML = '';
+            materialPreview.appendChild(iframe);
+            
+            // Fallback for cases where direct iframe fails
+            setTimeout(function() {
+                if (iframe.contentDocument && iframe.contentDocument.body.innerHTML === '') {
+                    // Attempt to load via proxy or use alternative preview
+                    fallbackPreview(url);
+                }
+            }, 2000);
+        } catch (error) {
+            console.error('Error creating iframe:', error);
+            fallbackPreview(url);
+        }
     });
+    
+    function fallbackPreview(url) {
+        // Fallback preview using extracted content
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch('/api/extract-preview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({url: url})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                materialPreview.innerHTML = `
+                    <div class="extracted-preview">
+                        <h2>${data.title}</h2>
+                        <div class="content">${data.content}</div>
+                        <p class="form-hint">Note: This is a limited preview. Some elements of the original page may not be displayed.</p>
+                    </div>
+                `;
+            } else {
+                materialPreview.innerHTML = `<p>Error extracting content: ${data.error || 'Unknown error'}</p>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error extracting preview:', error);
+            materialPreview.innerHTML = '<p>Error loading preview. Please check the URL and try again.</p>';
+        });
+    }
     
     // Material form submission
     const materialForm = document.getElementById('material-form');
@@ -159,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(assignData => {
                         if (assignData.success) {
                             alert('Assignment created successfully!');
-                            window.location.href = '/assignments/Causality Analysis/';
+                            window.location.href = '/assignments/causality-analysis/' + assignData.assignment_id + '/';
                         } else {
                             alert('Error creating assignment: ' + (assignData.error || 'Unknown error'));
                         }
@@ -183,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Get CSRF token from cookies
+    // Helper function to get CSRF token
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -206,43 +278,51 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear existing messages
         chatMessages.innerHTML = '';
         
-        // Add chat messages
-        addMessageToUI('assistant', `Hey Min,
-How are you this morning? How's your class going on? What type of learning material are you looking to register?`);
+        // Get current time for appropriate greeting
+        const currentTime = new Date();
+        let greeting = 'Hello';
         
-        addMessageToUI('user', `Hi, Abby,
-I want to add a section of the OpenStax content to create an assignment. I selected "online textbook" as the type—does this look correct? What should I do next?`);
+        if (currentTime.getHours() < 12) {
+            greeting = 'Good morning';
+        } else if (currentTime.getHours() < 18) {
+            greeting = 'Good afternoon';
+        } else {
+            greeting = 'Good evening';
+        }
         
-        addMessageToUI('assistant', `Hey Min,
+        addMessageToUI('assistant', `${greeting} Dr. Kim,
 
-No worries, you selected the correct type. Let me walk you through the setup step by step:
-1. Go to the content page on OpenStax
-2. Copy the URL from your browser
-3. Paste the URL into Step 3: Link to the Content
-4. Click "Extract Preview" to see a preview of the content
-5. Click "Save Material" to save just the material, or "Create Assignment" to save and create an assignment
+I see you're adding or editing a learning material. This is where you can define the source content for your assignments.
 
-Let me know if you need any further assistance!`);
+To complete this process:
+1. Add a descriptive title for your material
+2. Select the appropriate source type
+3. Provide the URL or link to the content
+4. Extract a preview to verify the content
+
+The preview will show the full webpage as it appears to students, allowing you to confirm that the content is displayed correctly.
+
+Let me know if you need any assistance with this process!`);
+    }
+    
+    // Function to add message to UI
+    function addMessageToUI(sender, message) {
+        const chatMessages = document.getElementById('chat-messages');
+        if (!chatMessages) return;
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${sender}`;
+        
+        let senderName = sender === 'user' ? 'You:' : 'Jordan:';
+        
+        messageElement.innerHTML = `
+            <div class="message-sender">${senderName}</div>
+            <div class="message-content">${message.replace(/\n/g, '<br>')}</div>
+        `;
+        
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 });
-
-// Function to add message to UI
-function addMessageToUI(sender, message, animate = true) {
-    const chatMessages = document.getElementById('chat-messages');
-    if (!chatMessages) return;
-    
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${sender}`;
-    
-    let senderName = sender === 'user' ? 'You:' : 'Abby:';
-    
-    messageElement.innerHTML = `
-        <div class="message-sender">${senderName}</div>
-        <div class="message-content">${message.replace(/\n/g, '<br>')}</div>
-    `;
-    
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
 </script>
 {% endblock %}

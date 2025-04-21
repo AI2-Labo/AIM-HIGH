@@ -1,5 +1,7 @@
 {% extends "aim_high_app/base.html" %}
 
+{% block page_name %}profile{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>Profile Management</h1>
@@ -23,36 +25,14 @@
                 <label for="institution">Institution</label>
                 <input type="text" id="institution" name="institution" value="{{ instructor.institution }}">
             </div>
-            
-            <div class="form-group">
-                <label for="department">Department</label>
-                <input type="text" id="department" name="department" value="{{ instructor.department }}">
-            </div>
         </div>
         
         <div class="form-section">
             <h2>Professional Biography</h2>
             <div class="form-group">
-                <label for="bio">Professional Bio</label>
-                <textarea id="bio" name="bio" rows="6">{{ instructor.bio }}</textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="research">Research Interests</label>
-                <textarea id="research" name="research_interests" rows="4">{{ instructor.research_interests }}</textarea>
-            </div>
-        </div>
-        
-        <div class="form-section">
-            <h2>Personal Background</h2>
-            <div class="form-group">
-                <label for="background">Personal Background</label>
-                <textarea id="background" name="personal_background" rows="6">{{ instructor.personal_background }}</textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="faith">Faith Statement (Optional)</label>
-                <textarea id="faith" name="faith_statement" rows="4">{{ instructor.faith_statement }}</textarea>
+                <label for="bio">Your Biography</label>
+                <textarea id="bio" name="bio" rows="10">{{ instructor.bio }}</textarea>
+                <p class="form-hint">Include your professional background, research interests, teaching philosophy, and any other information you'd like to share with students.</p>
             </div>
         </div>
         
@@ -67,22 +47,90 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('profile-form');
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        // Simulated success message
-        alert('Profile updated successfully!');
-    });
+    const csrftoken = getCookie('csrftoken');
     
-    // Add initial chat message for profile page
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                full_name: document.getElementById('full-name').value,
+                title: document.getElementById('title').value,
+                institution: document.getElementById('institution').value,
+                bio: document.getElementById('bio').value
+            };
+            
+            // Save profile data
+            fetch('/api/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Profile updated successfully!');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to update profile'));
+                }
+            })
+            .catch(error => {
+                console.error('Error updating profile:', error);
+                alert('An error occurred while updating the profile.');
+            });
+        });
+    }
+    
+    // Add initial chat message
     const chatMessages = document.getElementById('chat-messages');
     
-    addMessageToUI('assistant', `Hey Min, I'm Abby.
+    if (chatMessages) {
+        // Clear existing messages
+        chatMessages.innerHTML = '';
+        
+        const currentTime = new Date();
+        let greeting = 'Hello';
+        
+        if (currentTime.getHours() < 12) {
+            greeting = 'Good morning';
+        } else if (currentTime.getHours() < 18) {
+            greeting = 'Good afternoon';
+        } else {
+            greeting = 'Good evening';
+        }
+        
+        addMessageToUI('assistant', `${greeting} Dr. Kim,
 
-It's great to connect when you have a moment to learn more about you better. If you're open to it, could you tell me a little more about yourself - maybe your background, interests, or future aspirations? I think it would help create a stronger professional connection.
+I see you're updating your profile information. Your professional bio is an important way for students to learn about your background and expertise.
 
-If you'd like, you can enter your profile description in the My Profile box and save it. That way, I can better understand your experiences and how we can make the most of our conversations.
+I recommend including:
+• Your educational background
+• Research interests and achievements
+• Teaching philosophy
+• Any relevant industry experience
+• Personal interests related to your field
 
-Looking forward to learning more about you!`);
+If you need any assistance with crafting your biography, just let me know!`);
+    }
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 });
 </script>
 {% endblock %}
