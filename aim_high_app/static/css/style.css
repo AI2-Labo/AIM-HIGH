@@ -170,30 +170,33 @@ header {
 .content-wrapper {
     flex-grow: 1;
     display: flex;
-    gap: 2rem;
+    gap: 1rem; /* Reduced gap to make more space */
 }
 
-/* Main content section (SMALLER) */
+/* Main content section */
 .main-content {
-    flex: 1; /* Changed from flex: 2 to make it smaller */
+    flex: 1.2; /* Adjusted ratio */
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    padding: 1.5rem; /* Reduced padding */
-    min-width: 40%;
+    padding: 1.5rem;
+    overflow-x: auto; /* Ensure content doesn't overflow */
+    min-width: 0; /* Allow proper flex shrinking */
 }
 
-/* Chat panel (BIGGER) */
+/* Chat panel */
 .chat-panel {
-    flex: 1.5; /* Changed from flex: 1 to make it bigger */
+    flex: 0.8; /* Adjusted ratio */
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 150px);
+    height: calc(100vh - 150px);
     position: sticky;
     top: 100px;
+    max-width: 400px; /* Limit maximum width */
+    min-width: 300px; /* Ensure minimum width */
 }
 
 /* Page Header */

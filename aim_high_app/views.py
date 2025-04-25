@@ -43,6 +43,39 @@ def instructor_profile(request):
     
     return render(request, 'aim_high_app/profile.html', {'instructor': instructor})
 
+@csrf_exempt
+def update_profile(request):
+    """API endpoint to update instructor profile"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # For demo purposes, get the first instructor
+            instructor = InstructorProfile.objects.first()
+            
+            if not instructor:
+                return JsonResponse({'success': False, 'error': 'Instructor profile not found'})
+            
+            # Update the fields from the request
+            if 'full_name' in data:
+                instructor.full_name = data['full_name']
+            if 'title' in data:
+                instructor.title = data['title']
+            if 'institution' in data:
+                instructor.institution = data['institution']
+            if 'bio' in data:
+                instructor.bio = data['bio']
+            
+            # Save changes
+            instructor.save()
+            
+            return JsonResponse({'success': True, 'message': 'Profile updated successfully'})
+        except Exception as e:
+            print(f"Error updating profile: {e}")
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 @login_required
 def my_classes(request):
     """View for instructor's classes"""
@@ -96,10 +129,14 @@ def assignments(request, assignment_type=None):
         
     assignment_types = AssignmentType.objects.all()
     
+    # Get learning materials for modal
+    materials = LearningMaterial.objects.filter(instructor=instructor)
+    
     return render(request, 'aim_high_app/assignments.html', {
         'assignments': assignments,
         'assignment_types': assignment_types,
-        'current_type': assignment_type
+        'current_type': assignment_type,
+        'materials': materials
     })
 
 @login_required
@@ -207,7 +244,9 @@ def save_causality_model(request):
             model_type = data.get('model_type')
             content = data.get('content')
             is_reference = data.get('is_reference', False)
+            auto_generate = data.get('auto_generate', False)
             
+            # Get assignment
             if assignment_id:
                 try:
                     assignment = Assignment.objects.get(id=assignment_id, instructor=instructor)
@@ -236,6 +275,33 @@ def save_causality_model(request):
                     learning_material=material
                 )
             
+            # If auto_generate is True, use AI to generate the causality model
+            variables = data.get('variables', [])
+            relationships = data.get('relationships', [])
+            
+            if auto_generate and assignment.learning_material:
+                # Use the learning material content to generate causality model
+                material_content = assignment.learning_material.content_link
+                
+                # Extract the content from the URL
+                extracted_data = extract_content_from_url(material_content)
+                material_text = extracted_data.get('content', '')
+                material_title = extracted_data.get('title', assignment.title)
+                
+                # Analyze causal relationships
+                analysis_result = analyze_causal_relationships(material_text, material_title)
+                
+                # Use the generated summary as content if not provided
+                if not content and 'summary' in analysis_result:
+                    content = analysis_result.get('summary', '')
+                
+                # Use generated variables and relationships if not provided
+                if not variables and 'concepts' in analysis_result:
+                    variables = analysis_result.get('concepts', [])
+                
+                if not relationships and 'relationships' in analysis_result:
+                    relationships = analysis_result.get('relationships', [])
+            
             # Create the causality model
             causality_model = CausalityModel.objects.create(
                 assignment=assignment,
@@ -244,10 +310,7 @@ def save_causality_model(request):
                 is_reference=is_reference
             )
             
-            # Process variables and relationships if provided
-            variables = data.get('variables', [])
-            relationships = data.get('relationships', [])
-            
+            # Process variables and relationships
             variable_map = {}
             for var_name in variables:
                 variable = CausalityVariable.objects.create(
@@ -257,10 +320,42 @@ def save_causality_model(request):
                 variable_map[var_name] = variable
             
             for rel in relationships:
-                source_name = rel.get('source')
-                target_name = rel.get('target')
-                rel_type = rel.get('type', '')
+                if isinstance(rel, dict):
+                    source_name = rel.get('source', '')
+                    target_name = rel.get('target', '')
+                    rel_type = rel.get('relationship_type', rel.get('type', ''))
+                elif isinstance(rel, str):
+                    # Parse string relationship in case it's in the format "A -> B"
+                    if "->" in rel:
+                        source_name, target_name = [s.strip() for s in rel.split("->")]
+                        rel_type = "causes"
+                    elif "<-" in rel:
+                        target_name, source_name = [s.strip() for s in rel.split("<-")]
+                        rel_type = "caused by"
+                    elif "<->" in rel:
+                        source_name, target_name = [s.strip() for s in rel.split("<->")]
+                        rel_type = "bidirectional"
+                    else:
+                        continue  # Skip if format not recognized
+                else:
+                    continue  # Skip if not a dict or string
                 
+                # Create variables if they don't exist yet
+                if source_name and source_name not in variable_map:
+                    source_var = CausalityVariable.objects.create(
+                        model=causality_model,
+                        name=source_name
+                    )
+                    variable_map[source_name] = source_var
+                
+                if target_name and target_name not in variable_map:
+                    target_var = CausalityVariable.objects.create(
+                        model=causality_model,
+                        name=target_name
+                    )
+                    variable_map[target_name] = target_var
+                
+                # Create relationship if both variables exist
                 if source_name in variable_map and target_name in variable_map:
                     CausalityRelationship.objects.create(
                         model=causality_model,
@@ -379,13 +474,15 @@ def chat(request):
             
             # Determine response based on context and message
             if 'profile' in url_path:
-                response_text = get_profile_response(message)
+                response_text = get_chatbot_response(messages, summary)
             elif 'learning-material' in url_path:
-                response_text = get_learning_material_response(message)
+                response_text = get_chatbot_response(messages, summary)
             elif 'causality-analysis' in url_path:
-                response_text = get_causality_response(message)
+                response_text = get_chatbot_response(messages, summary)
             elif 'assignments' in url_path:
-                response_text = get_assignment_response(message)
+                response_text = get_chatbot_response(messages, summary)
+            elif 'test' in url_path:
+                response_text = get_chatbot_response(messages, summary)
             else:
                 # Use OpenAI for general responses
                 response_text = get_chatbot_response(messages, summary)
@@ -781,7 +878,7 @@ def test_evaluation(request):
 
 @csrf_exempt
 def evaluate_student_summary(request):
-    """API endpoint to evaluate student summary using cosine similarity"""
+    """API endpoint to evaluate student summary using OpenAI-powered analysis"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -793,7 +890,10 @@ def evaluate_student_summary(request):
             # Expert model for comparison
             expert_model = """Eukaryotic cells are distinguished by their complex nuclear membrane and presence of membrane-bound organelles in the cytoplasm. These organelles include mitochondria, endoplasmic reticulum, Golgi apparatus, lysosomes, and peroxisomes, which are organized by the cytoskeleton. The cytoskeleton maintains cell shape and directs intracellular transport. Unlike prokaryotic cells with circular chromosomes, eukaryotic cells have multiple rod-shaped chromosomes for their genome."""
             
-            # Calculate similarity score (simplified for demo)
+            # Get an in-depth evaluation using our OpenAI function
+            evaluation_result = evaluate_summary(expert_model, student_summary)
+            
+            # Calculate similarity score
             similarity_score = calculate_similarity(student_summary, expert_model)
             
             # Determine star rating
@@ -807,11 +907,32 @@ def evaluate_student_summary(request):
             elif similarity_score > 30:
                 stars = 2
             
-            # Generate feedback based on score
-            feedback, improvement = generate_feedback(similarity_score)
+            # Get feedback from the evaluation
+            feedback = evaluation_result.get('feedback', '')
             
-            # Get missing concepts based on score
-            missing_concepts = get_missing_concepts(similarity_score)
+            # If feedback has both strengths and areas for improvement, split them
+            if ' improve' in feedback.lower() or 'could be' in feedback.lower():
+                # Try to split into strength and improvement
+                parts = feedback.split('. ', 1)
+                if len(parts) > 1:
+                    feedback = parts[0]
+                    improvement = parts[1]
+                else:
+                    # Default to generated feedback if we can't split nicely
+                    feedback, improvement = generate_feedback(similarity_score)
+            else:
+                # Default to generated feedback if there's no clear improvement part
+                feedback, improvement = generate_feedback(similarity_score)
+            
+            # Get missing concepts from the evaluation
+            missing_concepts = evaluation_result.get('missing_concepts', [])
+            
+            # If we don't have missing concepts from the API, generate them
+            if not missing_concepts:
+                missing_concepts = get_missing_concepts(student_summary)
+            
+            # Get present concepts from the evaluation
+            present_concepts = evaluation_result.get('present_concepts', [])
             
             return JsonResponse({
                 'success': True,
@@ -819,7 +940,9 @@ def evaluate_student_summary(request):
                 'stars': stars,
                 'feedback': feedback,
                 'improvement': improvement,
-                'missing_concepts': missing_concepts
+                'missing_concepts': missing_concepts,
+                'present_concepts': present_concepts,
+                'evaluation': evaluation_result
             })
         except Exception as e:
             print(f"Error evaluating student summary: {e}")
@@ -829,41 +952,38 @@ def evaluate_student_summary(request):
 
 def calculate_similarity(text1, text2):
     """
-    Calculate cosine similarity between two texts (simplified)
-    
-    In a real application, this would use proper NLP techniques:
-    1. Tokenize and lemmatize words
-    2. Create word embeddings or TF-IDF vectors
-    3. Calculate actual cosine similarity
-    
-    For this demo, we use a simple word overlap approach
+    Calculate similarity between student text and expert model using our improved OpenAI-based evaluation
     """
-    words1 = set(text1.lower().split())
-    words2 = set(text2.lower().split())
+    # Call the OpenAI evaluation function
+    evaluation = evaluate_summary(text2, text1)  # original content, student summary
     
-    # Very basic word overlap calculation
-    overlap = len(words1.intersection(words2))
-    word_count = len(words1) + len(words2)
+    # Get the score from the evaluation (on a scale of 1-5)
+    score_1_to_5 = evaluation.get("score", 3)
     
-    # Basic length check - penalize very short summaries
-    if len(words1) < len(words2) * 0.3:
-        return max(5, min(50, int(overlap * 100 / word_count * 2)))
+    # Convert to a percentage (1-5 → 0-100%)
+    percentage_score = (score_1_to_5 / 5) * 100
     
-    # Simple keyword check - award points for key terms
-    key_terms = ["nuclear", "membrane", "organelles", "cytoplasm", "mitochondria", 
-                "endoplasmic", "reticulum", "golgi", "lysosomes", "peroxisomes", 
-                "cytoskeleton", "chromosomes", "circular", "rod-shaped"]
+    # Get missing and present concepts
+    missing_concepts = evaluation.get("missing_concepts", [])
+    present_concepts = evaluation.get("present_concepts", [])
     
-    term_score = sum(5 for term in key_terms if term in text1.lower())
+    # Calculate a concept coverage component (what percentage of concepts are covered)
+    all_concepts = missing_concepts + present_concepts
+    if all_concepts:
+        concept_coverage = (len(present_concepts) / len(all_concepts)) * 100
+    else:
+        concept_coverage = 0
     
-    # Combine scores (simplified approach)
-    base_score = int(overlap * 100 / word_count * 2)
-    final_score = min(100, base_score + term_score)
+    # Blend the AI-provided score with the concept coverage for a final score
+    final_score = int((percentage_score * 0.7) + (concept_coverage * 0.3))
     
-    return max(5, final_score)  # Minimum score of 5%
+    # Store the evaluation data in a session variable for later use
+    return max(5, min(100, final_score))  # Ensure score is between 5-100%
 
 def generate_feedback(score):
     """Generate feedback based on similarity score"""
+    # The feedback is now generated by the OpenAI evaluation
+    # We'll provide generic feedback here as fallback
     if score < 30:
         feedback = "Your summary captures only a few key points and lacks completeness."
         improvement = "Focus on including the main characteristics of eukaryotic cells: nuclear membrane, membrane-bound organelles, cytoskeleton, and chromosome structure."
@@ -882,22 +1002,128 @@ def generate_feedback(score):
     
     return feedback, improvement
 
-def get_missing_concepts(score):
-    """Generate list of missing concepts based on score"""
-    all_concepts = [
-        "Nuclear Membrane", "Mitochondria", "Endoplasmic Reticulum", 
-        "Golgi Apparatus", "Lysosomes", "Peroxisomes", "Cytoskeleton",
-        "Rod-shaped Chromosomes", "Organelle Organization", "Intracellular Transport"
-    ]
+def get_missing_concepts(summary_text):
+    """
+    Get missing concepts based on real-time analysis of the summary
+    """
+    # Define the expert model content for eukaryotic cells
+    expert_model = """Eukaryotic cells are characterized by a complex nuclear membrane. Also, eukaryotic cells are characterized by the presence of membrane-bound organelles in the cytoplasm. Organelles such as mitochondria, the endoplasmic reticulum (ER), Golgi apparatus, lysosomes, and peroxisomes are held in place by the cytoskeleton, an internal network that directs transport of intracellular components and helps maintain cell shape (Figure 3.35). The genome of eukaryotic cells is packaged in multiple, rod-shaped chromosomes as opposed to the single, circular-shaped chromosome that characterizes most prokaryotic cells."""
     
-    # Simulate missing concepts based on score
-    if score >= 90:
-        return []
-    elif score >= 70:
-        return all_concepts[7:]
-    elif score >= 50:
-        return all_concepts[5:]
-    elif score >= 30:
-        return all_concepts[3:]
-    else:
-        return all_concepts[1:]
+    # Use the OpenAI evaluation to get missing concepts
+    evaluation = evaluate_summary(expert_model, summary_text)
+    
+    # Return the missing concepts from the evaluation
+    return evaluation.get("missing_concepts", [])
+    
+def analyze_causal_relationships(content, title):
+    """
+    Analyze text to extract causal relationships between concepts
+    Uses the improved prompt from coworkers
+    """
+    # This now uses the enhanced extract_concepts function with the improved prompt
+    result = extract_concepts(content, title)
+    
+    # Return the structured result with concepts, relationships and summary
+    return result
+    
+@csrf_exempt
+def extract_preview(request):
+    """API endpoint to extract content from a learning material or URL"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            material_id = data.get('material_id')
+            url = data.get('url')
+            
+            if not material_id and not url:
+                return JsonResponse({'success': False, 'error': 'Either material_id or URL must be provided'})
+            
+            # Get content from material if material_id is provided
+            if material_id:
+                try:
+                    # For demo purposes, get the first instructor
+                    instructor = InstructorProfile.objects.first()
+                    material = get_object_or_404(LearningMaterial, id=material_id, instructor=instructor)
+                    content_link = material.content_link
+                    
+                    # Extract content from the content_link
+                    extracted_data = extract_content_from_url(content_link)
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'title': extracted_data.get('title', material.title),
+                        'content': extracted_data.get('content', ''),
+                        'material_id': material_id
+                    })
+                    
+                except Exception as e:
+                    print(f"Error extracting content from material: {e}")
+                    return JsonResponse({'success': False, 'error': str(e)})
+            
+            # Extract content directly from URL if provided
+            elif url:
+                extracted_data = extract_content_from_url(url)
+                
+                return JsonResponse({
+                    'success': True,
+                    'title': extracted_data.get('title', 'Extracted Content'),
+                    'content': extracted_data.get('content', ''),
+                    'url': url
+                })
+                
+        except Exception as e:
+            print(f"Error in extract_preview: {e}")
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+@csrf_exempt
+def extract_preview(request):
+    """API endpoint to extract content from a learning material or URL"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            material_id = data.get('material_id')
+            url = data.get('url')
+            
+            if not material_id and not url:
+                return JsonResponse({'success': False, 'error': 'Either material_id or URL must be provided'})
+            
+            # Get content from material if material_id is provided
+            if material_id:
+                try:
+                    # For demo purposes, get the first instructor
+                    instructor = InstructorProfile.objects.first()
+                    material = get_object_or_404(LearningMaterial, id=material_id, instructor=instructor)
+                    content_link = material.content_link
+                    
+                    # Extract content from the content_link
+                    extracted_data = extract_content_from_url(content_link)
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'title': extracted_data.get('title', material.title),
+                        'content': extracted_data.get('content', ''),
+                        'material_id': material_id
+                    })
+                    
+                except Exception as e:
+                    print(f"Error extracting content from material: {e}")
+                    return JsonResponse({'success': False, 'error': str(e)})
+            
+            # Extract content directly from URL if provided
+            elif url:
+                extracted_data = extract_content_from_url(url)
+                
+                return JsonResponse({
+                    'success': True,
+                    'title': extracted_data.get('title', 'Extracted Content'),
+                    'content': extracted_data.get('content', ''),
+                    'url': url
+                })
+                
+        except Exception as e:
+            print(f"Error in extract_preview: {e}")
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

@@ -21,6 +21,8 @@
         
         {% if current_type == 'Causality Analysis' %}
         <a href="{% url 'new_causality_analysis' %}" class="primary-button">Create New Assignment</a>
+        {% elif current_type == 'Summarization' %}
+        <a href="#" id="new-summarization-btn" class="primary-button">Create New Summarization</a>
         {% endif %}
     </div>
     
@@ -54,6 +56,102 @@
         </tbody>
     </table>
 </div>
+
+<!-- Modal for creating a new summarization assignment -->
+<div id="summarization-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Create New Summarization Assignment</h2>
+        
+        <div class="form-section">
+            <h3>Step 1: Select Learning Material</h3>
+            <select id="material-select" class="form-control">
+                <option value="" selected disabled>Select a learning material</option>
+                {% for material in materials %}
+                <option value="{{ material.id }}">{{ material.title }}</option>
+                {% endfor %}
+            </select>
+            <div id="selected-material-preview" class="selected-material-preview" style="display: none;">
+                <h4>Selected Material: <span id="selected-material-title"></span></h4>
+                <div id="selected-material-content" class="material-preview"></div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Step 2: Assignment Details</h3>
+            <div class="form-group">
+                <label for="assignment-title">Assignment Title</label>
+                <input type="text" id="assignment-title" class="form-control" placeholder="Enter a title for this assignment">
+            </div>
+            
+            <div class="form-group">
+                <label for="assignment-description">Assignment Description (Optional)</label>
+                <textarea id="assignment-description" class="form-control" placeholder="Enter instructions or description for students"></textarea>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" id="cancel-summarization" class="secondary-button">Cancel</button>
+            <button type="button" id="create-summarization" class="primary-button">Create Summarization</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 2rem;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+    border-radius: 8px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: black;
+}
+
+.selected-material-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.material-preview {
+    padding: 1rem;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -120,6 +218,140 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
     
+    // Summarization modal functionality
+    const newSummarizationBtn = document.getElementById('new-summarization-btn');
+    const summarizationModal = document.getElementById('summarization-modal');
+    const closeModalBtn = document.querySelector('.close-modal');
+    const cancelSummarizationBtn = document.getElementById('cancel-summarization');
+    const createSummarizationBtn = document.getElementById('create-summarization');
+    const materialSelect = document.getElementById('material-select');
+    const selectedMaterialPreview = document.getElementById('selected-material-preview');
+    const selectedMaterialTitle = document.getElementById('selected-material-title');
+    const selectedMaterialContent = document.getElementById('selected-material-content');
+    const assignmentTitle = document.getElementById('assignment-title');
+    const assignmentDescription = document.getElementById('assignment-description');
+    
+    // Initialize modal functionality if elements exist
+    if (newSummarizationBtn && summarizationModal) {
+        // Show modal when button is clicked
+        newSummarizationBtn.addEventListener('click', function() {
+            summarizationModal.style.display = 'block';
+        });
+        
+        // Close modal when X is clicked
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', function() {
+                summarizationModal.style.display = 'none';
+            });
+        }
+        
+        // Close modal when Cancel button is clicked
+        if (cancelSummarizationBtn) {
+            cancelSummarizationBtn.addEventListener('click', function() {
+                summarizationModal.style.display = 'none';
+            });
+        }
+        
+        // Close modal when clicking outside the modal
+        window.addEventListener('click', function(event) {
+            if (event.target === summarizationModal) {
+                summarizationModal.style.display = 'none';
+            }
+        });
+        
+        // Load material content when selected
+        if (materialSelect) {
+            materialSelect.addEventListener('change', function() {
+                const materialId = this.value;
+                
+                if (materialId) {
+                    // Get material content from API
+                    fetch(`/api/extract-preview`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            material_id: materialId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show preview
+                            selectedMaterialTitle.textContent = data.title;
+                            selectedMaterialContent.innerHTML = `<p>${data.content}</p>`;
+                            selectedMaterialPreview.style.display = 'block';
+                            
+                            // Auto-fill assignment title if empty
+                            if (!assignmentTitle.value) {
+                                assignmentTitle.value = `Summarization: ${data.title}`;
+                            }
+                        } else {
+                            alert('Error: ' + (data.error || 'Failed to load material content'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading material content:', error);
+                        alert('An error occurred while loading the material content.');
+                    });
+                } else {
+                    // Hide preview if no material selected
+                    selectedMaterialPreview.style.display = 'none';
+                }
+            });
+        }
+        
+        // Create summarization assignment
+        if (createSummarizationBtn) {
+            createSummarizationBtn.addEventListener('click', function() {
+                const materialId = materialSelect.value;
+                const title = assignmentTitle.value.trim();
+                const description = assignmentDescription.value.trim();
+                
+                if (!materialId) {
+                    alert('Please select a learning material for this assignment.');
+                    return;
+                }
+                
+                if (!title) {
+                    alert('Please enter a title for this assignment.');
+                    return;
+                }
+                
+                // Create assignment via API
+                fetch('/api/create-assignment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        assignment_type: 'Summarization',
+                        material_id: materialId,
+                        description: description
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Summarization assignment created successfully!');
+                        // Reload page to show new assignment
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to create summarization assignment'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error creating summarization assignment:', error);
+                    alert('An error occurred while creating the summarization assignment.');
+                });
+            });
+        }
+    }
+    
     // Add initial chat message
     const chatMessages = document.getElementById('chat-messages');
     
@@ -127,15 +359,58 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear existing messages
         chatMessages.innerHTML = '';
         
-        // Add chat messages
-        addMessageToUI('assistant', `Hey Min,
-How are you this afternoon? Do you want to create a causality analysis assignment?`);
+        // Get current time for appropriate greeting
+        const currentTime = new Date();
+        let greeting = 'Hello';
         
-        addMessageToUI('user', `Hi, Abby,
-Yes, I want to create a new assignment.`);
+        if (currentTime.getHours() < 12) {
+            greeting = 'Good morning';
+        } else if (currentTime.getHours() < 18) {
+            greeting = 'Good afternoon';
+        } else {
+            greeting = 'Good evening';
+        }
         
-        addMessageToUI('assistant', `Gotcha!
-First, you need to choose a registered source material. Use the "Search" function to find one. If you haven't registered the relevant learning material yet, head to the "Learning Materials" menu and add it first.`);
+        // Add context-specific message based on the current assignment type
+        const currentType = '{{ current_type }}';
+        let message;
+        
+        if (currentType === 'Summarization') {
+            message = `${greeting} Dr. Kim,
+
+I see you're viewing your summarization assignments. Summarization helps students identify key concepts and understand relationships between them.
+
+You can:
+• Create a new summarization assignment by clicking the "Create New Summarization" button
+• View and manage your existing assignments in the table below
+• Delete assignments you no longer need
+
+To create a new summarization, you'll need to select a learning material you've already registered. Need any help with this process?`;
+        } else if (currentType === 'Causality Analysis') {
+            message = `${greeting} Dr. Kim,
+
+I see you're viewing your causality analysis assignments. These help students explore cause-and-effect relationships between concepts.
+
+You can:
+• Create a new causality analysis by clicking the "Create New Assignment" button
+• View and manage your existing assignments in the table below
+• Click "Edit" to modify an existing causality analysis
+
+Need any help creating a new causality analysis assignment?`;
+        } else {
+            message = `${greeting} Dr. Kim,
+
+Welcome to your assignments page! Here you can view and manage all your assignments across different types.
+
+To get started:
+• Use the dropdown menu to filter assignments by type
+• Create new assignments from the filtered views
+• Manage your existing assignments using the action links
+
+What type of assignment would you like to create today?`;
+        }
+        
+        addMessageToUI('assistant', message);
     }
 });
 

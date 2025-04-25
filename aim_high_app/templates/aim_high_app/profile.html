@@ -28,7 +28,7 @@
         </div>
         
         <div class="form-section">
-            <h2>Professional Biography</h2>
+            <h2>Biography</h2>
             <div class="form-group">
                 <label for="bio">Your Biography</label>
                 <textarea id="bio" name="bio" rows="10">{{ instructor.bio }}</textarea>
@@ -81,6 +81,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error updating profile:', error);
                 alert('An error occurred while updating the profile.');
             });
+        });
+    }
+    
+    // Initialize chat features
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-message');
+    
+    if (chatInput && sendButton) {
+        // Send message when button is clicked
+        sendButton.addEventListener('click', function() {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+            
+            // Add user message to UI
+            addMessageToUI('user', message);
+            
+            // Clear input field
+            chatInput.value = '';
+            
+            // Get current page context
+            const context = {
+                name: 'profile',
+                url: window.location.pathname,
+                title: document.title
+            };
+            
+            // Send message to API with context
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    message: message,
+                    context: context
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add assistant message to UI
+                    addMessageToUI('assistant', data.message);
+                    
+                    // Scroll to bottom
+                    const chatMessages = document.getElementById('chat-messages');
+                    if (chatMessages) {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                addMessageToUI('assistant', "I'm having trouble connecting right now. Please try again later.");
+            });
+        });
+        
+        // Send message when Enter key is pressed
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
         });
     }
     

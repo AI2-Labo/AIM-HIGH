@@ -26,18 +26,30 @@ function initContextAwareChatbot() {
         };
     }
     
+    // Get current time for appropriate greeting
+    const currentTime = new Date();
+    let greeting = 'Hello';
+    
+    if (currentTime.getHours() < 12) {
+        greeting = 'Good morning';
+    } else if (currentTime.getHours() < 18) {
+        greeting = 'Good afternoon';
+    } else {
+        greeting = 'Good evening';
+    }
+    
     // Add appropriate greeting based on the page
-    let greeting = '';
+    let message = '';
     
     if (window.location.pathname.includes('/profile/')) {
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
 I see you're viewing your profile information. Here you can update your personal and professional details that will be displayed to students. 
 
-Need any help with your profile information? I'm happy to provide suggestions for your professional bio or research interests section.`;
+Need any help with your profile information? I'm happy to provide suggestions for your professional bio.`;
     } 
     else if (window.location.pathname.includes('/learning-materials/')) {
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
 Welcome to the Learning Materials section. Here you can manage all your educational content for creating assignments.
 
@@ -51,7 +63,7 @@ You can add new materials from various sources like:
 Let me know if you need help adding or managing your learning materials!`;
     } 
     else if (window.location.pathname.includes('/learning-material/manage/')) {
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
 I see you're adding or editing a learning material. This is where you can define the source content for your assignments.
 
@@ -59,12 +71,12 @@ To complete this process:
 1. Add a descriptive title for your material
 2. Select the appropriate source type
 3. Provide the URL or link to the content
-4. Extract a preview to verify the content
+4. View a preview of the complete webpage
 
 Let me know if you need any assistance with this process!`;
     }
     else if (window.location.pathname.includes('/assignments/causality-analysis/')) {
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
 I see you're working on a causality analysis assignment. This is where you can create and analyze cause-and-effect relationships in your learning materials.
 
@@ -76,7 +88,7 @@ You can:
 Need help with creating a new causality model or understanding the existing ones?`;
     }
     else if (window.location.pathname.includes('/assignments/')) {
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
 Welcome to the Assignments section where you can create and manage different types of learning activities.
 
@@ -90,27 +102,33 @@ You can create various assignment types:
 Let me know which type of assignment you'd like to create or manage!`;
     }
     else if (window.location.pathname.includes('/test/')) {
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
 Welcome to the evaluation feature! This is where you can test your understanding of the learning material by writing a summary.
 
-I'll evaluate your summary using cosine similarity to compare it with an expert model. You'll receive:
+I'll evaluate your summary by analyzing how well it covers the key concepts in the topic. You'll receive:
 • A similarity score (shown in the progress bar)
-• A knowledge map of concepts
-• A list of any missing concepts
+• A knowledge map showing included concepts (blue) and missing concepts (orange)
+• A list of any concepts that were missing from your summary
 • A quality rating and personalized feedback
 
 Try writing a summary of the eukaryotic cells content in the text area, then click "Evaluate" to see your results!`;
     }
     else {
         // Default greeting for home page or other pages
-        greeting = `Hey Yojin,
+        message = `${greeting} Dr. Kim,
 
-Good morning! I'm Jordan, your personal learning assistant. How's your kitty? She must be adorable! Are you ready to start the summarization assignment? If you haven't read the article yet, you can start with the "Learning Material" section. Let me know if you have any questions about the topic.`;
+How can I assist you today? I'm here to help with:
+• Creating and managing learning materials
+• Setting up causality analysis assignments
+• Testing your students' understanding of key concepts
+• Providing feedback on summaries
+
+Let me know what you'd like to work on!`;
     }
     
     // Add the greeting to the chat
-    addMessageToUI('assistant', greeting);
+    addMessageToUI('assistant', message);
 }
 
 // Initialize the sidebar
@@ -238,19 +256,33 @@ function sendMessage() {
 
 // Function to get a fallback response (for when API fails)
 function getFallbackResponse(message, context) {
+    // Get current time for appropriate greeting
+    const currentTime = new Date();
+    let greeting = 'Hello';
+    
+    if (currentTime.getHours() < 12) {
+        greeting = 'Good morning';
+    } else if (currentTime.getHours() < 18) {
+        greeting = 'Good afternoon';
+    } else {
+        greeting = 'Good evening';
+    }
+    
     // Simple keyword matching for fallback responses
     const lowerMessage = message.toLowerCase();
     
     if (lowerMessage.includes('help')) {
-        return "I'd be happy to help! What specific part of the application are you having trouble with?";
+        return `${greeting} Dr. Kim, I'd be happy to help! What specific part of the application are you having trouble with?`;
     } else if (lowerMessage.includes('thank')) {
         return "You're welcome! Let me know if you need anything else.";
     } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi ')) {
-        return "Hello! How can I assist you with your learning activities today?";
+        return `${greeting} Dr. Kim! How can I assist you with your learning activities today?`;
     } else if (lowerMessage.includes('summary')) {
         return "For summarization assignments, you should focus on identifying and including all the key concepts from the learning material. Would you like some tips on writing an effective summary?";
+    } else if (lowerMessage.includes('causality') || lowerMessage.includes('cause') || lowerMessage.includes('effect')) {
+        return "Causality analysis involves identifying cause-and-effect relationships between key concepts. This helps students understand how different ideas connect and influence each other. Would you like help with creating a causality model?";
     } else {
-        return "I understand. Is there something specific about the current page I can help you with?";
+        return `I understand. Is there something specific about the current page that I can help you with? I'm here to assist with any questions you have.`;
     }
 }
 

@@ -35,4 +35,6 @@ urlpatterns = [
     path('api/create-assignment', views.create_assignment, name='create_assignment'),
     path('api/delete-assignment/<int:assignment_id>/', views.delete_assignment, name='delete_assignment'),
     path('api/save-causality-model', views.save_causality_model, name='save_causality_model'),
+    path('api/update-profile', views.update_profile, name='update_profile'),
+    path('api/extract-preview', views.extract_preview, name='extract_preview'),
 ]

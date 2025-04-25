@@ -32,14 +32,14 @@
         <div class="form-group">
             <input type="url" id="content-link" name="content_link" value="{% if material %}{{ material.content_link }}{% else %}https://openstax.org/books/microbiology/pages/3-4-unique-characteristics-of-eukaryotic-cells{% endif %}" class="form-control">
         </div>
-        <button type="button" id="extract-preview-btn" class="secondary-button">Extract Preview</button>
+        <button type="button" id="extract-preview-btn" class="secondary-button">Show Preview</button>
     </div>
     
     <div class="step-container" id="preview-container">
         <h3>Step 4: Preview</h3>
         <div class="preview-content">
             <div id="material-preview" class="material-preview-frame">
-                <p>Click the "Extract Preview" button to see content from the specified URL.</p>
+                <p>Click the "Show Preview" button to see the complete web page from the specified URL.</p>
             </div>
         </div>
     </div>
@@ -57,7 +57,7 @@
 <style>
 .material-preview-frame {
     width: 100%;
-    height: 400px;
+    height: 500px;
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: auto;
@@ -146,11 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Create a full-page embedded view
                 materialPreview.innerHTML = `
                     <div class="extracted-preview">
                         <h2>${data.title}</h2>
                         <div class="content">${data.content}</div>
-                        <p class="form-hint">Note: This is a limited preview. Some elements of the original page may not be displayed.</p>
+                        <p class="form-hint">Note: This is a preview of the webpage content. The complete page may contain additional elements.</p>
                     </div>
                 `;
             } else {
@@ -298,7 +299,7 @@ To complete this process:
 1. Add a descriptive title for your material
 2. Select the appropriate source type
 3. Provide the URL or link to the content
-4. Extract a preview to verify the content
+4. View a preview of the complete webpage
 
 The preview will show the full webpage as it appears to students, allowing you to confirm that the content is displayed correctly.
 
